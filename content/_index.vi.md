@@ -25,7 +25,7 @@ Bản báo cáo được rà soát lại dựa trên **QuickBite-final-v3**, rep
 | Lớp / Cohort FCAJ | **AWS062026** |
 | Công ty thực tập | **Amazon Web Services Viet Nam Company Limited** |
 | Vị trí thực tập | **Workforce Bootcamp - First Cloud AI Journey** |
-| Thời gian thực tập | **15/7/2026 - 14/8/2026** |
+| Thời gian thực tập | **01/6/2026 - 15/8/2026** |
 
 {{< report-image src="images/quickbite-cover.jpg" alt="QuickBite report cover" >}}
 
