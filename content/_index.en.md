@@ -25,7 +25,7 @@ This revision is grounded in **QuickBite-final-v3**, the QuickBite repository, a
 | FCAJ class / cohort | **AWS062026** |
 | Internship Company | **Amazon Web Services Viet Nam Company Limited** |
 | Internship position | **Workforce Bootcamp - First Cloud AI Journey** |
-| Worklog period | **15/6/2026 - 14/8/2026** |
+| Worklog period | **01/6/2026 - 15/8/2026** |
 
 {{< report-image src="images/quickbite-cover.jpg" alt="QuickBite report cover" >}}
 
