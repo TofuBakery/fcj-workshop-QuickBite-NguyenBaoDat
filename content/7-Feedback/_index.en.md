@@ -14,17 +14,7 @@ For QuickBite, this approach changed how I viewed the project. React, FastAPI, a
 
 ## Satisfaction
 
-**[TO UPDATE: enter an honest score, for example x/10]**
-
-I am satisfied with the hands-on direction and bilingual reporting requirement. The most difficult but useful part is producing evidence instead of only describing architecture.
-
-## What could be improved
-
-- Provide a standard evidence checklist at the beginning: required screenshots, data that must be hidden, and pass/fail criteria.
-- Add an architecture review before students create potentially chargeable resources.
-- Clearly illustrate the difference between target architecture and deployed architecture.
-- Provide a minimal IaC/CI-CD example while still requiring customization.
-- Add practical troubleshooting examples for private RDS, CORS, and CloudFront SPAs.
+I am satisfied with the hands-on direction and bilingual reporting requirement. The most difficult but useful part is a  completed produce instead of only describing architecture.
 
 ## Would I recommend the program?
 

@@ -18,20 +18,20 @@ Bản báo cáo được rà soát lại dựa trên **QuickBite-final-v3**, rep
 |---|---|
 | Họ và tên | **Nguyễn Bảo Đạt** |
 | Mã số sinh viên | **2352232** |
-| Số điện thoại | **[CẬP NHẬT]** |
+| Số điện thoại | **0888456586** |
 | Email | **dat.nguyenbaodat1410@hcmut.edu.vn** |
 | Trường | **Trường Đại học Bách khoa - ĐHQG TP.HCM (HCMUT)** |
 | Chuyên ngành | **Kỹ thuật Máy tính** |
-| Lớp / Cohort FCAJ | **[CẬP NHẬT THEO HỒ SƠ CHÍNH THỨC]** |
-| Công ty / chương trình thực tập | **First Cloud Journey (FCAJ) / AWS Study Group** |
-| Vị trí thực tập | **Cloud / Software Engineering Intern - [xác nhận tên trên giấy tờ]** |
-| Thời gian Worklog | **04/06/2026 - 31/07/2026 (8 tuần, 6 ngày làm việc/tuần)** |
+| Lớp / Cohort FCAJ | **AWS062026** |
+| Công ty thực tập | **Amazon Web Services Viet Nam Company Limited** |
+| Vị trí thực tập | **Workforce Bootcamp - First Cloud AI Journey** |
+| Thời gian thực tập | **15/7/2026 - 14/8/2026** |
 
-{{< report-image src="images/quickbite-cover.svg" alt="QuickBite report cover" >}}
+{{< report-image src="images/quickbite-cover.jpg" alt="QuickBite report cover" >}}
 
 ### Nội dung báo cáo
 
-1. [Worklog 8 tuần](1-Worklog/)
+1. [Worklog](1-Worklog/)
 2. [Proposal](2-Proposal/)
 3. [Ba Blog Post](3-BlogsPosted/)
 4. [Events Participated](4-EventParticipated/)
@@ -44,9 +44,7 @@ Bản báo cáo được rà soát lại dựa trên **QuickBite-final-v3**, rep
 - <span class="status-done">Deployment assets:</span> Dockerfile, `docker-compose.aws.yml`, PostgreSQL schema/seed/views, hướng dẫn triển khai từng phase, CloudWatch logging config, Lambda + SES sample và clean-up guide.
 - <span class="status-pending">Kiến trúc demo AWS:</span> CloudFront + S3 web, EC2 Docker FastAPI, RDS PostgreSQL private Single-AZ, S3 menu images, CloudWatch Logs + CPU Alarm, IAM role, SNS email cho alarm, AWS Budgets và Cost Explorer.
 - <span class="status-pending">Optional/Future:</span> Lambda + SES cho email đơn hàng; IaC; Auto Scaling; Multi-AZ; WAF; Secrets Manager và chiến lược DR nâng cao.
-- <span class="status-missing">Bằng chứng cần bổ sung:</span> URL demo, ảnh AWS Console, log/metric/alarm thực tế, link ba bài đã đăng, tên/ảnh ba event, video demo và bằng chứng clean-up.
 
 ### Repository
 
 - [QuickBite repository](https://github.com/edrictrn/quickbite)
-- [Pinned snapshot used for comparison (`6c79b99`)](https://github.com/edrictrn/quickbite/tree/6c79b99049949e8cd28ae196c9792f4abff2e3db)

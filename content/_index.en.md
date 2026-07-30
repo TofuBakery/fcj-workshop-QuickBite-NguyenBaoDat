@@ -18,20 +18,20 @@ This revision is grounded in **QuickBite-final-v3**, the QuickBite repository, a
 |---|---|
 | Full name | **Nguyễn Bảo Đạt** |
 | Student ID | **2352232** |
-| Phone number | **[TO BE UPDATED]** |
+| Phone number | **0888456586** |
 | Email | **dat.nguyenbaodat1410@hcmut.edu.vn** |
 | University | **Ho Chi Minh City University of Technology - VNU-HCM (HCMUT)** |
 | Major | **Computer Engineering** |
-| FCAJ class / cohort | **[UPDATE FROM OFFICIAL RECORDS]** |
-| Internship program | **First Cloud Journey (FCAJ) / AWS Study Group** |
-| Internship position | **Cloud / Software Engineering Intern - [confirm official title]** |
-| Worklog period | **4 June 2026 - 31 July 2026 (8 weeks, 6 working days per week)** |
+| FCAJ class / cohort | **AWS062026** |
+| Internship Company | **Amazon Web Services Viet Nam Company Limited** |
+| Internship position | **Workforce Bootcamp - First Cloud AI Journey** |
+| Worklog period | **15/6/2026 - 14/8/2026** |
 
-{{< report-image src="images/quickbite-cover.svg" alt="QuickBite report cover" >}}
+{{< report-image src="images/quickbite-cover.jpg" alt="QuickBite report cover" >}}
 
 ### Report structure
 
-1. [Eight-week Worklog](1-Worklog/)
+1. [Worklog](1-Worklog/)
 2. [Proposal](2-Proposal/)
 3. [Three Blog Posts](3-BlogsPosted/)
 4. [Events Participated](4-EventParticipated/)
@@ -44,9 +44,7 @@ This revision is grounded in **QuickBite-final-v3**, the QuickBite repository, a
 - <span class="status-done">Deployment assets:</span> Dockerfiles, `docker-compose.aws.yml`, PostgreSQL files, phase-by-phase deployment guide, CloudWatch logging configuration, Lambda + SES sample, and clean-up guide.
 - <span class="status-pending">AWS demo architecture:</span> CloudFront + S3, EC2 Docker FastAPI, private Single-AZ RDS PostgreSQL, S3 images, CloudWatch Logs + CPU Alarm, IAM role, SNS alarm email, Budgets, and Cost Explorer.
 - <span class="status-pending">Optional/Future:</span> Lambda + SES order email, IaC, Auto Scaling, Multi-AZ, WAF, Secrets Manager, and advanced DR.
-- <span class="status-missing">Evidence still required:</span> demo URL, AWS Console screenshots, real logs/metrics/alarms, published blog links, names/evidence for three events, demo video, and clean-up evidence.
 
 ### Repository
 
 - [QuickBite repository](https://github.com/edrictrn/quickbite)
-- [Pinned snapshot used for comparison (`6c79b99`)](https://github.com/edrictrn/quickbite/tree/6c79b99049949e8cd28ae196c9792f4abff2e3db)

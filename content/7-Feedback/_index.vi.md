@@ -14,17 +14,7 @@ Với QuickBite, cách tiếp cận này giúp tôi nhìn lại toàn bộ proje
 
 ## Mức độ hài lòng
 
-**[CẦN CẬP NHẬT: chọn mức điểm thật, ví dụ x/10]**
-
-Tôi hài lòng với định hướng thực hành và yêu cầu report song ngữ. Phần khó nhất nhưng cũng hữu ích nhất là phải đưa ra bằng chứng thay vì chỉ mô tả kiến trúc.
-
-## Điều chương trình có thể cải thiện
-
-- Cung cấp một evidence checklist chuẩn ngay từ đầu: screenshot nào bắt buộc, thông tin nào phải che và tiêu chí pass/fail.
-- Có một buổi architecture review trước khi học viên tạo tài nguyên có thể phát sinh chi phí.
-- Minh họa rõ sự khác nhau giữa “target architecture” và “deployed architecture”.
-- Cung cấp ví dụ IaC/CI-CD tối thiểu nhưng vẫn yêu cầu người học tự tùy biến.
-- Đưa thêm ví dụ troubleshooting thực tế cho RDS private, CORS và CloudFront SPA.
+Em hài lòng với định hướng thực hành và yêu cầu report song ngữ. Phần khó nhất nhưng cũng hữu ích nhất là phải hoàn thien sản phẩm thay vì chỉ mô tả kiến trúc.
 
 ## Tôi có giới thiệu chương trình không?
 
