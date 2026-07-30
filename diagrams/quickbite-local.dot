@@ -1,0 +1,18 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad="0.3", nodesep="0.45", ranksep="0.7", fontname="Arial", label="QuickBite local Docker architecture", labelloc="t", fontsize=22];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=12, color="#475569", fillcolor="#f8fafc", margin="0.18,0.12"];
+  edge [fontname="Arial", fontsize=10, color="#64748b", arrowsize=0.8];
+  browser [label="Customers / Staff\nWeb browser", shape=oval, fillcolor="#fff7ed", color="#ea580c"];
+  react [label="React + TypeScript\nVite :5173", fillcolor="#e0f2fe", color="#0284c7"];
+  api [label="FastAPI 1.4.0\nDocker :8000\nJWT · RBAC · Rate limit", fillcolor="#dcfce7", color="#16a34a"];
+  postgres [label="PostgreSQL 16\nDocker :5432\nSchema · Seed · Views", fillcolor="#ede9fe", color="#7c3aed"];
+  mailpit [label="Mailpit\nSMTP :1025\nInbox :8025", fillcolor="#fce7f3", color="#db2777"];
+  s3code [label="S3 upload endpoint\nCode-ready, AWS not configured", fillcolor="#fef3c7", color="#d97706"];
+  tests [label="pytest + E2E\n17 test functions", fillcolor="#f1f5f9", color="#475569"];
+  browser -> react [label="HTTP"];
+  react -> api [label="REST JSON\nBearer token"];
+  api -> postgres [label="SQL"];
+  api -> mailpit [label="SMTP"];
+  api -> s3code [label="boto3 (optional)", style=dashed];
+  tests -> api [label="TestClient", style=dashed];
+}

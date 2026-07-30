@@ -18,23 +18,32 @@
     padding-left: 4px;
   }
 </style>
+
+{{- $url := .Get 0 -}}
+{{- $contributors := slice -}}
+{{- with try (resources.GetRemote $url) -}}
+  {{- with .Err -}}
+    {{- warnf "Unable to retrieve GitHub contributors from %q: %s" $url . -}}
+  {{- else with .Value -}}
+    {{- $contributors = .Content | transform.Unmarshal -}}
+  {{- else -}}
+    {{- warnf "Unable to retrieve GitHub contributors from %q" $url -}}
+  {{- end -}}
+{{- end -}}
+
 <div class="ghContributors">
-  {{ $url := .Get 0 }} {{ range getJSON $url }}
+  {{- range $contributors }}
   <div>
     <img
-      src="{{.avatar_url}}"
+      src="{{ .avatar_url }}"
+      alt="GitHub avatar of {{ .login }}"
       class="inline"
       width="32"
       height="32"
-      style="
-        height: 32px;
-        height: 32px;
-        margin-bottom: 0.25em;
-        vertical-align: middle;
-      "
+      style="height: 32px; margin-bottom: 0.25em; vertical-align: middle;"
     />
-    <label><a href="{{.html_url}}">@{{.login}}</a></label>
-    <span class="contributions">{{.contributions}} commits</span>
+    <label><a href="{{ .html_url }}">@{{ .login }}</a></label>
+    <span class="contributions">{{ .contributions }} commits</span>
   </div>
-  {{ end }}
+  {{- end }}
 </div>

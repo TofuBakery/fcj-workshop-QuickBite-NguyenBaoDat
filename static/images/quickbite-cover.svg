@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-label="QuickBite FCAJ report cover">
+  <rect width="1200" height="560" fill="#fff7ed"/>
+  <rect x="55" y="55" width="1090" height="450" rx="28" fill="#ffffff" stroke="#f97316" stroke-width="4"/>
+  <circle cx="210" cy="280" r="105" fill="#ffedd5" stroke="#ea580c" stroke-width="5"/>
+  <path d="M145 265c8-47 123-47 131 0z" fill="#fb923c"/>
+  <rect x="145" y="272" width="131" height="18" rx="9" fill="#22c55e"/>
+  <rect x="142" y="295" width="137" height="23" rx="11" fill="#a16207"/>
+  <path d="M145 324h131c-8 43-123 43-131 0z" fill="#fb923c"/>
+  <text x="370" y="225" font-family="Arial, Helvetica, sans-serif" font-size="74" font-weight="700" fill="#1f2937">QuickBite</text>
+  <text x="374" y="290" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#ea580c">FCAJ Internship &amp; AWS Workshop Report</text>
+  <text x="374" y="350" font-family="Arial, Helvetica, sans-serif" font-size="27" fill="#4b5563">FastAPI · React · PostgreSQL · S3 · CloudFront · EC2 · RDS · CloudWatch</text>
+  <text x="374" y="410" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#9a3412">Bilingual draft — AWS evidence pending</text>
+</svg>

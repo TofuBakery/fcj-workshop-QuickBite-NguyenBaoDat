@@ -1,0 +1,45 @@
+# QuickBite backend on EC2, talking to Amazon RDS (no local Postgres container).
+# This file deliberately has NO `db` service and NO `depends_on`, so
+# `docker compose up` never spins up a local database.
+#
+# Usage on EC2:
+#   cp .env.example .env    # then fill in real values (see keys below)
+#   docker compose -f docker-compose.aws.yml up --build -d
+#   curl http://localhost:8000/health
+#
+# Required in .env:
+#   DATABASE_URL   full RDS connection string
+#   SECRET_KEY     long random string
+#   CORS_ALLOW_ORIGINS   your CloudFront domain (https://dxxxx.cloudfront.net)
+#   S3_BUCKET_NAME       menu-images bucket
+# Optional:
+#   MENU_IMAGE_BASE_URL  CloudFront domain in front of a PRIVATE image bucket
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: quickbite-backend
+    restart: unless-stopped
+    environment:
+      # Point straight at RDS, e.g.
+      # postgresql://quickbite:<pwd>@quickbite-db.xxxx.ap-southeast-1.rds.amazonaws.com:5432/quickbite
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL to your RDS connection string}
+      AUTO_CREATE_TABLES: "false"
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+      ACCESS_TOKEN_EXPIRE_MINUTES: "120"
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:?set to your CloudFront domain}
+      AWS_REGION: ${AWS_REGION:-ap-southeast-1}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-quickbite-menu-images}
+      MENU_IMAGE_BASE_URL: ${MENU_IMAGE_BASE_URL:-}
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      SHOW_DEMO_ACCOUNTS: "false"
+    ports:
+      - "8000:8000"
+    # Ship container stdout/stderr to CloudWatch Logs (the EC2 IAM role must allow
+    # logs:CreateLogGroup / CreateLogStream / PutLogEvents).
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: ap-southeast-1
+        awslogs-group: quickbite/backend
+        awslogs-create-group: "true"

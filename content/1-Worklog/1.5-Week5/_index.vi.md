@@ -1,59 +1,41 @@
 ---
-title: "Worklog Tuần 5"
-date: 2024-01-01
-weight: 1
+title: "Nhật ký tuần 5"
+date: 2026-07-30
+weight: 5
 chapter: false
 pre: " <b> 1.5. </b> "
 ---
-{{% notice warning %}}
-⚠️ **Lưu ý:** Các thông tin dưới đây chỉ nhằm mục đích tham khảo, vui lòng **không sao chép nguyên văn** cho bài báo cáo của bạn kể cả warning này.
-{{% /notice %}}
-
-
 ### Mục tiêu tuần 5:
 
-* Kết nối, làm quen với các thành viên trong First Cloud AI Journey.
-* Hiểu dịch vụ AWS cơ bản, cách dùng console & CLI.
+* Đánh giá QuickBite theo sáu trụ cột AWS Well-Architected.
+* Phân biệt rõ kiến trúc demo hiện tại và các cải tiến dành cho tương lai.
 
-### Các công việc cần triển khai trong tuần này:
-| Thứ | Công việc                                                                                                                                                                                   | Ngày bắt đầu | Ngày hoàn thành | Nguồn tài liệu                            |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | --------------- | ----------------------------------------- |
-| 2   | - Làm quen với các thành viên FCAJ <br> - Đọc và lưu ý các nội quy, quy định tại đơn vị thực tập                                                                                             | 11/08/2025   | 11/08/2025      |
-| 3   | - Tìm hiểu AWS và các loại dịch vụ <br>&emsp; + Compute <br>&emsp; + Storage <br>&emsp; + Networking <br>&emsp; + Database <br>&emsp; + ... <br>                                            | 12/08/2025   | 12/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 4   | - Tạo AWS Free Tier account <br> - Tìm hiểu AWS Console & AWS CLI <br> - **Thực hành:** <br>&emsp; + Tạo AWS account <br>&emsp; + Cài AWS CLI & cấu hình <br> &emsp; + Cách sử dụng AWS CLI | 13/08/2025   | 13/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 5   | - Tìm hiểu EC2 cơ bản: <br>&emsp; + Instance types <br>&emsp; + AMI <br>&emsp; + EBS <br>&emsp; + ... <br> - Các cách remote SSH vào EC2 <br> - Tìm hiểu Elastic IP   <br>                  | 14/08/2025   | 15/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 6   | - **Thực hành:** <br>&emsp; + Tạo EC2 instance <br>&emsp; + Kết nối SSH <br>&emsp; + Gắn EBS volume                                                                                         | 15/08/2025   | 15/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
+### Các công việc đã thực hiện trong tuần:
 
+| Ngày làm việc | Công việc | Ngày bắt đầu | Ngày hoàn thành | Tài liệu tham khảo |
+|---:|---|---|---|---|
+| 1 | Đánh giá Operational Excellence: runbook, health check, log, alarm, evidence và cleanup. | 28/06/2026 | 29/06/2026 | [Operational Excellence Pillar](https://docs.aws.amazon.com/wellarchitected/latest/operational-excellence-pillar/welcome.html) |
+| 2 | Đánh giá Security: IAM least privilege, Security Group, RDS private, CORS và quản lý secret bằng .env. | 28/06/2026 | 30/06/2026 | [Security Pillar](https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html) |
+| 3 | Đánh giá Reliability: backup/restore là hướng phát triển; bản demo dùng Single-AZ và chấp nhận thời gian gián đoạn. | 29/06/2026 | 01/07/2026 | [Reliability Pillar](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html) |
+| 4 | Đánh giá Performance Efficiency: CloudFront cho static content, cấu hình instance nhỏ và theo dõi CPU. | 30/06/2026 | 02/07/2026 | [Performance Efficiency Pillar](https://docs.aws.amazon.com/wellarchitected/latest/performance-efficiency-pillar/welcome.html) |
+| 5 | Đánh giá Cost Optimization và Sustainability: Budgets, Cost Explorer, right-sizing và xóa tài nguyên sau demo. | 01/07/2026 | 03/07/2026 | [Cost Optimization Pillar](https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html) |
+| 6 | Chỉnh sơ đồ thành hai lớp Deployed/Demo và Target/Future; dùng nét đứt cho ASG, Multi-AZ, WAF và Secrets Manager. | 30/06/2026 | 03/07/2026 | [Sustainability Pillar](https://docs.aws.amazon.com/wellarchitected/latest/sustainability-pillar/welcome.html) |
 
 ### Kết quả đạt được tuần 5:
 
-* Hiểu AWS là gì và nắm được các nhóm dịch vụ cơ bản: 
-  * Compute
-  * Storage
-  * Networking 
-  * Database
-  * ...
-
-* Đã tạo và cấu hình AWS Free Tier account thành công.
-
-* Làm quen với AWS Management Console và biết cách tìm, truy cập, sử dụng dịch vụ từ giao diện web.
-
-* Cài đặt và cấu hình AWS CLI trên máy tính bao gồm:
-  * Access Key
-  * Secret Key
-  * Region mặc định
-  * ...
-
-* Sử dụng AWS CLI để thực hiện các thao tác cơ bản như:
-
-  * Kiểm tra thông tin tài khoản & cấu hình
-  * Lấy danh sách region
-  * Xem dịch vụ EC2
-  * Tạo và quản lý key pair
-  * Kiểm tra thông tin dịch vụ đang chạy
-  * ...
-
-* Có khả năng kết nối giữa giao diện web và CLI để quản lý tài nguyên AWS song song.
-* ...
-
-
+* Đánh giá được QuickBite theo sáu trụ cột AWS Well-Architected:
+  * Operational Excellence.
+  * Security.
+  * Reliability.
+  * Performance Efficiency.
+  * Cost Optimization.
+  * Sustainability.
+* Xác định các biện pháp vận hành cần có cho demo: runbook, health check, log, alarm, checklist kiểm thử và cleanup.
+* Áp dụng các nguyên tắc bảo mật phù hợp với phạm vi hiện tại: IAM Least Privilege, RDS private, Security Group, CORS và không hard-code key.
+* Hiểu giới hạn Reliability của bản demo Single-AZ và ghi rõ Multi-AZ, backup nâng cao và failover là hướng phát triển.
+* Giải thích được vai trò của CloudFront trong phân phối static content và giảm tải cho origin.
+* Xây dựng kế hoạch kiểm soát chi phí bằng AWS Budgets, Cost Explorer, right-sizing và xóa tài nguyên không sử dụng.
+* Tách sơ đồ thành hai lớp:
+  * Deployed/Demo: những gì có thể triển khai và chứng minh.
+  * Target/Future: Auto Scaling, Multi-AZ, WAF, Secrets Manager và backup nâng cao.
+* Chuẩn hóa tên tài nguyên để tránh sai khác giữa sơ đồ, file cấu hình và báo cáo.

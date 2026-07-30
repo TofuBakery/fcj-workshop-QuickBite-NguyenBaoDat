@@ -117,3 +117,63 @@ a:hover {
 #sidebar hr {
   border-color: var(--MENU-SECTION-HR-color);
 }
+
+/* QuickBite report typography normalization */
+html,
+body,
+button,
+input,
+select,
+textarea,
+table,
+th,
+td,
+p,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+code,
+pre,
+kbd,
+samp,
+.hljs {
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+/* Keep technical names readable without the highlighted monospace badge style. */
+:not(pre) > code,
+p code,
+li code,
+td code,
+th code {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  color: inherit !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Code blocks remain distinct, but use the same report font. */
+pre,
+pre code,
+.highlight,
+.highlight code,
+.hljs {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 0.95em !important;
+  color: #333333 !important;
+}
+
+pre {
+  background: #f5f5f5 !important;
+  border: 1px solid #dddddd !important;
+  box-shadow: none !important;
+}

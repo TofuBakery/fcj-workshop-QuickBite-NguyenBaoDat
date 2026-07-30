@@ -1,125 +1,143 @@
 ---
-title: "Event 1"
-date: 2024-01-01
+title: "First Cloud Journey Community Day - 06/06/2026"
+date: 2026-07-30
 weight: 1
 chapter: false
 pre: " <b> 4.1. </b> "
 ---
+# Báo cáo tóm tắt: “First Cloud Journey Community Day – Technical Sharing Sessions”
 
-{{% notice warning %}}
-⚠️ **Lưu ý:** Các thông tin dưới đây chỉ nhằm mục đích tham khảo, vui lòng **không sao chép nguyên văn** cho bài báo cáo của bạn kể cả warning này.
-{{% /notice %}}
+| Thông tin | Nội dung |
+|---|---|
+| **Ngày tham gia** | **06/06/2026** |
+| **Hình thức** | Trực tiếp |
+| **Đơn vị tổ chức** | First Cloud Journey (FCJ) |
+| **Vai trò** | Người tham dự |
+| **Nội dung** | Chia sẻ kỹ thuật, kiến trúc AWS, cloud-native, bảo mật, AI và định hướng nghề nghiệp |
 
-# Bài thu hoạch “GenAI-powered App-DB Modernization workshop”
+## Mục tiêu sự kiện
 
-### Mục Đích Của Sự Kiện
+- Tạo không gian để các thành viên First Cloud Journey chia sẻ kiến thức và kinh nghiệm thực tế.
+- Giới thiệu nhiều hướng ứng dụng AWS, từ AI/GraphRAG, bảo mật, WebSocket serverless đến vận hành cloud và DevOps.
+- Làm rõ vai trò của Docker và container trong quá trình phát triển, kiểm thử và triển khai ứng dụng.
+- Chia sẻ các bài học về teamwork, kỹ năng tự học và lộ trình phát triển từ IT infrastructure sang Cloud/DevOps.
+- Khuyến khích người tham dự liên hệ kiến thức trình bày với dự án cá nhân thay vì chỉ tiếp nhận ở mức lý thuyết.
 
-- Chia sẻ best practices trong thiết kế ứng dụng hiện đại
-- Giới thiệu phương pháp DDD và event-driven architecture
-- Hướng dẫn lựa chọn compute services phù hợp
-- Giới thiệu công cụ AI hỗ trợ development lifecycle
+## Diễn giả và chủ đề
 
-### Danh Sách Diễn Giả
+- **Trương Huy Phước** – *The Art of Effective Teamwork*.
+- **Việt Phát** – *Building GraphRAG Applications Using Amazon Bedrock and Amazon Neptune*.
+- **Lê Hoàng Gia Đại** – *Combining AWS WAF with Machine Learning for Cyber Attack Detection on AWS*.
+- **Bảo Huỳnh** – *Docker: A Containerization Technology*.
+- **Trần Trung Vinh** – *From IT Helpdesk to Senior Sysadmin and the First Steps toward Cloud/DevOps*.
+- **Nguyễn Quốc Bảo** – *Multiplayer in the Cloud: Connecting Godot Clients with AWS WebSockets*.
 
-- **Jignesh Shah** - Director, Open Source Databases
-- **Erica Liu** - Sr. GTM Specialist, AppMod
-- **Fabrianne Effendi** - Assc. Specialist SA, Serverless Amazon Web Services
+## Nội dung nổi bật
 
-### Nội Dung Nổi Bật
+### 1. Làm việc nhóm hiệu quả
 
-#### Đưa ra các ảnh hưởng tiêu cực của kiến trúc ứng dụng cũ
+Phần trình bày của anh Trương Huy Phước tập trung vào hiệu suất làm việc cá nhân và hiệu suất của cả nhóm. Nội dung nhấn mạnh rằng teamwork không chỉ là chia nhỏ công việc, mà còn cần nguyên tắc làm việc chung, cách giao tiếp rõ ràng và công cụ phù hợp. Các công cụ như **Trello, ClickUp, Google Workspace, Slack và Discord** được giới thiệu như những lựa chọn hỗ trợ phân công, theo dõi tiến độ và trao đổi trong nhóm.
 
-- Thời gian release sản phẩm lâu → Mất doanh thu/bỏ lỡ cơ hội
-- Hoạt động kém hiệu quả → Mất năng suất, tốn kém chi phí
-- Không tuân thủ các quy định về bảo mật → Mất an ninh, uy tín
+### 2. GraphRAG với Amazon Bedrock và Amazon Neptune
 
-#### Chuyển đổi sang kiến trúc ứng dụng mới - Microservice Architecture
+Phần của Việt Phát bắt đầu từ RAG truyền thống và giới hạn của nó khi xử lý câu hỏi cần suy luận qua nhiều mối quan hệ. **GraphRAG** khắc phục điểm này bằng cách lưu quan hệ dưới dạng node và edge, sau đó thực hiện graph traversal để hỗ trợ multi-hop reasoning.
 
-Chuyển đổi thành hệ thống modular – từng chức năng là một **dịch vụ độc lập** giao tiếp với nhau qua **sự kiện** với 3 trụ cột cốt lõi:
+Hai cách triển khai chính được trình bày:
 
-- **Queue Management**: Xử lý tác vụ bất đồng bộ
-- **Caching Strategy:** Tối ưu performance
-- **Message Handling:** Giao tiếp linh hoạt giữa services
+- **Fully managed:** Amazon Bedrock Knowledge Bases thực hiện chunking, trích xuất entity và tạo embedding; Amazon Neptune Analytics lưu và khai thác graph.
+- **Custom route:** sử dụng LlamaIndex để chuẩn bị dữ liệu, xây knowledge graph và lưu vào Amazon Neptune để truy vấn bằng Cypher.
 
-#### Domain-Driven Design (DDD)
+### 3. Kết hợp AWS WAF với Machine Learning NIDS
 
-- **Phương pháp 4 bước**: Xác định domain events → sắp xếp timeline → identify actors → xác định bounded contexts
-- **Case study bookstore**: Minh họa cách áp dụng DDD thực tế
-- **Context mapping**: 7 patterns tích hợp bounded contexts
+Lê Hoàng Gia Đại trình bày vai trò của **AWS WAF** trong việc bảo vệ ứng dụng web khỏi SQL injection, XSS, bot traffic, brute force và các request bất thường. Tuy nhiên, WAF dựa trên rule có thể gặp hạn chế trước zero-day attack hoặc hành vi chưa từng xuất hiện.
 
-#### Event-Driven Architecture
+Giải pháp được đề xuất là kết hợp WAF với **Network Intrusion Detection System sử dụng Machine Learning**. Bài trình bày sử dụng bộ dữ liệu **CSE-CIC-IDS2018**, thực hiện gộp dữ liệu, làm sạch, xử lý giá trị lỗi, cân bằng lớp và huấn luyện mô hình. Phần kết quả nhấn mạnh rằng chất lượng dữ liệu và cách xử lý mất cân bằng lớp ảnh hưởng trực tiếp đến khả năng phát hiện các nhóm tấn công thiểu số.
 
-- **3 patterns tích hợp**: Publish/Subscribe, Point-to-point, Streaming
-- **Lợi ích**: Loose coupling, scalability, resilience
-- **So sánh sync vs async**: Hiểu rõ trade-offs (sự đánh đổi)
+### 4. Docker và containerization
 
-#### Compute Evolution
+Bảo Huỳnh giải thích sự khác nhau giữa virtualization và containerization. So với virtual machine, container nhẹ hơn vì không cần một hệ điều hành riêng cho từng ứng dụng. Docker giúp đóng gói ứng dụng cùng dependency và cấu hình để hệ thống có thể chạy nhất quán ở nhiều môi trường.
 
-- **Shared Responsibility Model**: Từ EC2 → ECS → Fargate → Lambda
-- **Serverless benefits**: No server management, auto-scaling, pay-for-value
-- **Functions vs Containers**: Criteria lựa chọn phù hợp
+Các khái niệm chính gồm:
 
-#### Amazon Q Developer
+- Docker image và container;
+- Dockerfile;
+- image layer và build cache;
+- các Docker command cơ bản;
+- ứng dụng Docker trong CI/CD, microservices, môi trường development/testing và cloud-native application.
 
-- **SDLC automation**: Từ planning đến maintenance
-- **Code transformation**: Java upgrade, .NET modernization
-- **AWS Transform agents**: VMware, Mainframe, .NET migration
+### 5. Từ IT Helpdesk đến Sysadmin và Cloud/DevOps
 
-### Những Gì Học Được
+Trần Trung Vinh chia sẻ lộ trình nghề nghiệp thực tế từ IT Helpdesk lên System Administrator. Những kỹ năng hình thành từ Helpdesk như troubleshooting, giao tiếp với người dùng và xử lý vấn đề dưới áp lực là nền tảng quan trọng cho công việc hạ tầng.
 
-#### Tư Duy Thiết Kế
+Khi chuyển sang Sysadmin và Cloud/DevOps, các năng lực cần được bổ sung gồm Linux, networking, lab thực hành, automation, monitoring, runbook, Infrastructure as Code, CI/CD và Docker. Một thông điệp đáng nhớ là dự án thực tế và khả năng giải quyết vấn đề thường có giá trị hơn việc chỉ học nhiều chủ đề hoặc chỉ có chứng chỉ.
 
-- **Business-first approach**: Luôn bắt đầu từ business domain, không phải technology
-- **Ubiquitous language**: Importance của common vocabulary giữa business và tech teams
-- **Bounded contexts**: Cách identify và manage complexity trong large systems
+### 6. Multiplayer trên cloud với AWS WebSockets
 
-#### Kiến Trúc Kỹ Thuật
+Nguyễn Quốc Bảo trình bày kiến trúc game multiplayer theo lượt sử dụng **Amazon API Gateway WebSocket, AWS Lambda và Amazon DynamoDB**, kết nối với hai Godot client.
 
-- **Event storming technique**: Phương pháp thực tế để mô hình hóa quy trình kinh doanh
-- Sử dụng **Event-driven communication** thay vì synchronous calls
-- **Integration patterns**: Hiểu khi nào dùng sync, async, pub/sub, streaming
-- **Compute spectrum**: Criteria chọn từ VM → containers → serverless
+Luồng xử lý gồm:
 
-#### Chiến Lược Hiện Đại Hóa
+- `$connect`, `$disconnect` và custom route trong API Gateway;
+- Lambda tìm người chơi đang chờ, ghép cặp và gửi message đến hai `connectionId`;
+- DynamoDB lưu trạng thái kết nối, đối thủ và lựa chọn của người chơi;
+- Godot WebSocket client gửi/nhận JSON message và cập nhật giao diện theo trạng thái trận đấu.
 
-- **Phased approach**: Không rush, phải có roadmap rõ ràng
-- **7Rs framework**: Nhiều con đường khác nhau tùy thuộc vào đặc điểm của mỗi ứng dụng
-- **ROI measurement**: Cost reduction + business agility
+Bài trình bày cũng chỉ ra ba vấn đề thực tế: stale connection gây `GoneException`, chi phí của DynamoDB Scan và việc Lambda không duy trì state giữa các request. AWS GameLift được đề cập như hướng phù hợp hơn cho game cần dedicated server và đồng bộ thời gian thực liên tục.
 
-### Ứng Dụng Vào Công Việc
+## Bài học chính
 
-- **Áp dụng DDD** cho project hiện tại: Event storming sessions với business team
-- **Refactor microservices**: Sử dụng bounded contexts để identify service boundaries
-- **Implement event-driven patterns**: Thay thế một số sync calls bằng async messaging
-- **Serverless adoption**: Pilot AWS Lambda cho một số use cases phù hợp
-- **Try Amazon Q Developer**: Integrate vào development workflow để boost productivity
+### Tư duy thiết kế
 
-### Trải nghiệm trong event
+- Chọn kiến trúc dựa trên bài toán và quy mô thật, không thêm dịch vụ chỉ để hệ thống trông phức tạp hơn.
+- Tách các thành phần giúp giảm phụ thuộc, nhưng cần hiểu chi phí vận hành và cách theo dõi lỗi.
+- Dữ liệu, state và communication pattern là ba yếu tố cần được thiết kế rõ ngay từ đầu.
 
-Tham gia workshop **“GenAI-powered App-DB Modernization”** là một trải nghiệm rất bổ ích, giúp tôi có cái nhìn toàn diện về cách hiện đại hóa ứng dụng và cơ sở dữ liệu bằng các phương pháp và công cụ hiện đại. Một số trải nghiệm nổi bật:
+### Kỹ thuật cloud
 
-#### Học hỏi từ các diễn giả có chuyên môn cao
-- Các diễn giả đến từ AWS và các tổ chức công nghệ lớn đã chia sẻ **best practices** trong thiết kế ứng dụng hiện đại.
-- Qua các case study thực tế, tôi hiểu rõ hơn cách áp dụng **Domain-Driven Design (DDD)** và **Event-Driven Architecture** vào các project lớn.
+- Docker giúp chuẩn hóa môi trường và giảm khác biệt giữa máy phát triển với máy triển khai.
+- AWS managed services giúp giảm công việc vận hành, nhưng developer vẫn phải hiểu giới hạn của từng dịch vụ.
+- Monitoring, logging và runbook nên được chuẩn bị trước khi sự cố xảy ra.
+- Bảo mật cần nhiều lớp; rule-based protection hiệu quả với mẫu tấn công đã biết nhưng không thay thế hoàn toàn việc phân tích hành vi.
+- Serverless WebSocket phù hợp với ứng dụng theo lượt, nhưng cần xử lý kết nối hết hạn, state và truy vấn DynamoDB cẩn thận.
 
-#### Trải nghiệm kỹ thuật thực tế
-- Tham gia các phiên trình bày về **event storming** giúp tôi hình dung cách **mô hình hóa quy trình kinh doanh** thành các domain events.
-- Học cách **phân tách microservices** và xác định **bounded contexts** để quản lý sự phức tạp của hệ thống lớn.
-- Hiểu rõ trade-offs giữa **synchronous và asynchronous communication** cũng như các pattern tích hợp như **pub/sub, point-to-point, streaming**.
+### Phát triển nghề nghiệp và teamwork
 
-#### Ứng dụng công cụ hiện đại
-- Trực tiếp tìm hiểu về **Amazon Q Developer**, công cụ AI hỗ trợ SDLC từ lập kế hoạch đến maintenance.
-- Học cách **tự động hóa code transformation** và pilot serverless với **AWS Lambda**, từ đó nâng cao năng suất phát triển.
+- Học sâu một số kỹ năng nền tảng và xây dự án thật hiệu quả hơn việc học quá nhiều chủ đề cùng lúc.
+- Documentation, automation và giao tiếp là kỹ năng kỹ thuật quan trọng, không chỉ là công việc phụ.
+- Công cụ quản lý chỉ phát huy hiệu quả khi nhóm đã thống nhất cách phân công, cập nhật tiến độ và trao đổi.
 
-#### Kết nối và trao đổi
-- Workshop tạo cơ hội trao đổi trực tiếp với các chuyên gia, đồng nghiệp và team business, giúp **nâng cao ngôn ngữ chung (ubiquitous language)** giữa business và tech.
-- Qua các ví dụ thực tế, tôi nhận ra tầm quan trọng của **business-first approach**, luôn bắt đầu từ nhu cầu kinh doanh thay vì chỉ tập trung vào công nghệ.
+## Ứng dụng vào QuickBite và công việc
 
-#### Bài học rút ra
-- Việc áp dụng DDD và event-driven patterns giúp giảm **coupling**, tăng **scalability** và **resilience** cho hệ thống.
-- Chiến lược hiện đại hóa cần **phased approach** và đo lường **ROI**, không nên vội vàng chuyển đổi toàn bộ hệ thống.
-- Các công cụ AI như Amazon Q Developer có thể **boost productivity** nếu được tích hợp vào workflow phát triển hiện tại.
+Sau sự kiện, tôi đối chiếu các nội dung đã nghe với dự án QuickBite:
 
-#### Một số hình ảnh khi tham gia sự kiện
-* Thêm các hình ảnh của các bạn tại đây
-> Tổng thể, sự kiện không chỉ cung cấp kiến thức kỹ thuật mà còn giúp tôi thay đổi cách tư duy về thiết kế ứng dụng, hiện đại hóa hệ thống và phối hợp hiệu quả hơn giữa các team.
+- **Docker:** tiếp tục đóng gói FastAPI backend và môi trường local để giảm khác biệt khi chuyển lên EC2.
+- **Cloud architecture:** giữ kiến trúc demo ở mức phù hợp gồm CloudFront, S3, EC2, RDS và CloudWatch; các thành phần nâng cao chỉ được ghi là hướng phát triển.
+- **Monitoring:** bổ sung CloudWatch Logs, CPU Alarm và checklist xử lý sự cố thay vì chỉ kiểm tra ứng dụng bằng giao diện.
+- **Security:** áp dụng IAM role theo least privilege cho EC2 và giới hạn quyền truy cập đúng S3 bucket/prefix cần dùng.
+- **Event-driven:** xem xét tách email hoặc notification sau khi tạo đơn thành luồng bất đồng bộ trong tương lai; không mô tả đây là chức năng đã triển khai ở bản demo.
+- **Teamwork:** tổ chức task theo đầu việc nhỏ, ghi rõ người thực hiện, kết quả và bằng chứng để việc viết Worklog và Workshop nhất quán hơn.
+- **Operational practice:** duy trì tài liệu triển khai, troubleshooting và clean-up để người khác có thể tái hiện quy trình.
+
+GraphRAG và kiến trúc multiplayer không nằm trong phạm vi hiện tại của QuickBite, nhưng hai phần này giúp tôi hiểu rõ hơn cách lựa chọn database, communication pattern và managed service cho các bài toán khác nhau.
+
+## Trải nghiệm sự kiện
+
+Đây là sự kiện đầu tiên tôi tham gia trong chương trình. Điểm tôi đánh giá cao nhất là nội dung không bị giới hạn ở một công nghệ duy nhất. Các phần trình bày đi từ teamwork, container, vận hành hệ thống đến AI, cybersecurity và real-time application. Nhờ đó, tôi có được góc nhìn rộng hơn về cách một sản phẩm cloud được xây dựng và vận hành.
+
+Phần Docker liên hệ trực tiếp nhất với QuickBite vì dự án đang sử dụng container cho môi trường local và backend. Phần Cloud/DevOps giúp tôi chú ý hơn đến monitoring, runbook và automation. Trong khi đó, phần AWS WAF kết hợp Machine Learning cho thấy một hệ thống bảo mật hiệu quả cần kết hợp nhiều lớp và phải dựa trên dữ liệu thực tế.
+
+Tôi cũng nhận ra rằng một bài thuyết trình kỹ thuật tốt không chỉ liệt kê dịch vụ AWS. Các bài có demo, kiến trúc, khó khăn và bài học sau triển khai giúp người nghe hiểu rõ hơn giới hạn của giải pháp. Đây là cách trình bày tôi muốn áp dụng cho phần Workshop QuickBite: mô tả đúng những gì đã làm, có bằng chứng, nêu lỗi đã gặp và tách riêng phần “future improvement”.
+
+## Bài học rút ra
+
+- Không nên thiết kế hệ thống theo hướng “càng nhiều dịch vụ càng tốt”; kiến trúc phải phù hợp với mục tiêu, ngân sách và khả năng vận hành.
+- Containerization là bước chuẩn bị quan trọng trước khi đưa ứng dụng lên cloud.
+- Monitoring và documentation cần được xem là một phần của sản phẩm, không phải việc bổ sung sau cùng.
+- Khi sử dụng serverless hoặc event-driven architecture, cần thiết kế retry, state, idempotency và failure handling.
+- Dự án thực tế, khả năng giải thích quyết định kỹ thuật và bài học từ lỗi triển khai có giá trị lớn trong quá trình học và phát triển nghề nghiệp.
+
+## Một số hình ảnh sự kiện
+
+{{< report-image src="event-photo.jpg" alt="Ảnh tại First Cloud Journey Community Day ngày 06/06/2026" >}}
+
+Ảnh chụp phần tổng kết của chủ đề “Combining AWS WAF with Machine Learning for Cyber Attack Detection on AWS”, gồm kết quả, hướng phát triển và các bài học rút ra.

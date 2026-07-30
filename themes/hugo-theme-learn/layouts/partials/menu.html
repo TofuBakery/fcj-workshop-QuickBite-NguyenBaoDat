@@ -47,22 +47,22 @@
             <div class="select-style">
               <select id="select-language" onchange="location = this.value;">
                 {{ $siteLanguages := .Site.Languages}} {{ $pageLang :=
-                .Page.Lang}} {{ range .Page.AllTranslations }} {{ $translation
-                := .}} {{ range $siteLanguages }} {{ if eq $translation.Lang
-                .Lang }} {{ $selected := false }} {{ if eq $pageLang .Lang}}
+                .Page.Language.Name}} {{ range .Page.AllTranslations }} {{ $translation
+                := .}} {{ range $siteLanguages }} {{ if eq $translation.Language.Name
+                .Name }} {{ $selected := false }} {{ if eq $pageLang .Name}}
                 <option
-                  id="{{ $translation.Language }}"
+                  id="{{ $translation.Language.Name }}"
                   value="{{ $translation.Permalink }}"
                   selected
                 >
-                  {{ .LanguageName }}
+                  {{ .Label }}
                 </option>
                 {{ else }}
                 <option
-                  id="{{ $translation.Language }}"
+                  id="{{ $translation.Language.Name }}"
                   value="{{ $translation.Permalink }}"
                 >
-                  {{ .LanguageName }}
+                  {{ .Label }}
                 </option>
                 {{ end }} {{ end }} {{ end }} {{ end }}
               </select>

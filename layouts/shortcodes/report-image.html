@@ -1,0 +1,15 @@
+{{- $name := .Get "src" -}}
+{{- $alt := .Get "alt" -}}
+{{- $caption := .Get "caption" -}}
+{{- $resource := .Page.Resources.GetMatch $name -}}
+<figure style="margin: 1.5rem auto; text-align: center;">
+  {{- if $resource }}
+  <img src="{{ $resource.RelPermalink }}" alt="{{ $alt }}" loading="eager" decoding="async" style="display:block; width:100%; max-width:1100px; height:auto; margin:0 auto;">
+  {{- else }}
+  {{- $clean := strings.TrimPrefix "/" $name -}}
+  <img src="{{ $clean | relURL }}" alt="{{ $alt }}" loading="eager" decoding="async" style="display:block; width:100%; max-width:1100px; height:auto; margin:0 auto;">
+  {{- end }}
+  {{- with $caption }}
+  <figcaption style="margin-top:.6rem; color:#555;">{{ . }}</figcaption>
+  {{- end }}
+</figure>

@@ -1,0 +1,38 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad="0.3", nodesep="0.45", ranksep="0.85", fontname="Arial", label="QuickBite target architecture on AWS (planned)", labelloc="t", fontsize=22];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=12, color="#475569", fillcolor="#f8fafc", margin="0.18,0.12"];
+  edge [fontname="Arial", fontsize=10, color="#64748b", arrowsize=0.8];
+
+  user [label="Customers / Staff\nWeb browser", shape=oval, fillcolor="#fff7ed", color="#ea580c"];
+  cf [label="Amazon CloudFront\nHTTPS + SPA", fillcolor="#fef3c7", color="#d97706"];
+  fe [label="Amazon S3\nPrivate React frontend\nOrigin Access Control", fillcolor="#dcfce7", color="#16a34a"];
+  img [label="Amazon S3\nPrivate menu images", fillcolor="#dcfce7", color="#16a34a"];
+
+  subgraph cluster_vpc {
+    label="Amazon VPC"; color="#94a3b8"; style="rounded,dashed"; fontname="Arial";
+    ec2 [label="Amazon EC2\nDocker + FastAPI\nIAM instance role", fillcolor="#e0f2fe", color="#0284c7"];
+    rds [label="Amazon RDS PostgreSQL\nPrivate DB subnets", fillcolor="#ede9fe", color="#7c3aed"];
+    ec2 -> rds [label="5432\nEC2 SG → RDS SG"];
+  }
+
+  cw [label="Amazon CloudWatch\nLogs · Metrics · Alarms", fillcolor="#fce7f3", color="#db2777"];
+  sns [label="Amazon SNS\nAlarm email", fillcolor="#f3e8ff", color="#9333ea"];
+  lambda [label="AWS Lambda\nOrder email (optional)", fillcolor="#fff7ed", color="#ea580c"];
+  ses [label="Amazon SES\nVerified email", fillcolor="#fee2e2", color="#dc2626"];
+  iam [label="AWS IAM\nLeast privilege", fillcolor="#fee2e2", color="#dc2626"];
+  budget [label="AWS Budgets\nCost alerts", fillcolor="#f3e8ff", color="#9333ea"];
+
+  user -> cf [label="HTTPS"];
+  cf -> fe [label="static assets"];
+  user -> ec2 [label="HTTPS API"];
+  ec2 -> img [label="boto3 upload/read"];
+  ec2 -> cw [label="logs"];
+  rds -> cw [label="metrics"];
+  cw -> sns [label="alarm"];
+  sns -> user [label="email", style=dashed];
+  ec2 -> lambda [label="invoke / event", style=dashed];
+  lambda -> ses [label="SendEmail", style=dashed];
+  iam -> ec2 [label="instance profile", style=dashed];
+  iam -> lambda [label="execution role", style=dashed];
+  budget -> user [label="cost alert", style=dashed];
+}

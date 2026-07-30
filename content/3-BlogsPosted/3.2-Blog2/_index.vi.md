@@ -1,31 +1,151 @@
 ---
-title: "Blog 2"
-date: 2024-01-01
-weight: 1
+title: "Blog 2 - Disaster Recovery trên AWS"
+date: 2026-07-30
+weight: 2
 chapter: false
 pre: " <b> 3.2. </b> "
 ---
-{{% notice warning %}}
-⚠️ **Lưu ý:** Các thông tin dưới đây chỉ nhằm mục đích tham khảo, vui lòng **không sao chép nguyên văn** cho bài báo cáo của bạn kể cả warning này.
-{{% /notice %}}
+# Disaster Recovery trên AWS: Không phải đợi hệ thống sập mới nghĩ đến phục hồi
 
-# SESSION POLICIES TRONG AMAZON EKS POD IDENTITY
+**Trạng thái nội dung:** Hoàn thành  
 
-Amazon EKS Pod Identity vừa bổ sung tính năng session policies, cho phép bạn thu hẹp quyền IAM một cách linh hoạt và chính xác cho từng pod mà không cần tạo thêm nhiều IAM roles riêng biệt. Đây là bước tiến quan trọng giúp áp dụng nguyên tắc least privilege hiệu quả hơn trong môi trường Kubernetes quy mô lớn.
+Khi mới học deploy ứng dụng, mình thường chỉ tập trung vào câu hỏi: “Làm sao để hệ thống chạy được?” Nhưng sau khi tìm hiểu sâu hơn về cloud, mình nhận ra một câu hỏi khác quan trọng không kém: “Nếu hệ thống gặp sự cố thì phục hồi như thế nào?”
 
-Các điểm chính cần nắm:
+Đó là lúc **Disaster Recovery (DR)** trở nên rất thực tế.
 
-* Session policy là một IAM policy inline được chỉ định khi tạo hoặc cập nhật Pod Identity association.
-* Quyền hiệu quả = intersection (giao) giữa permissions của IAM role và session policy → session policy chỉ có thể thu hẹp, không thể mở rộng quyền.
-* Giúp tránh tình trạng over-permissioning khi reuse chung một IAM role cho nhiều workloads có nhu cầu khác nhau.
-* Hỗ trợ cả same-account và cross-account (qua IAM role chaining).
-* Giảm đáng kể số lượng IAM roles cần quản lý, tránh chạm giới hạn quota IAM trong cluster lớn.
-* Cấu hình dễ dàng qua AWS Management Console, AWS CLI hoặc AWS SDK khi tạo association giữa Kubernetes ServiceAccount và IAM role.
+Disaster Recovery là kế hoạch giúp workload phục hồi sau các sự cố nghiêm trọng như database hỏng, lỗi triển khai, mất dữ liệu, Availability Zone gặp vấn đề hoặc một thành phần chính không còn hoạt động. Với hệ thống thật, “chạy được” là chưa đủ. Hệ thống cần biết dữ liệu nào phải bảo vệ, có thể ngừng bao lâu và phục hồi theo các bước nào.
 
-Tính năng này đặc biệt hữu ích khi bạn có nhiều ứng dụng chạy trên cùng một IAM role nhưng cần giới hạn quyền khác nhau (ví dụ: một pod chỉ đọc S3 bucket cụ thể, pod khác chỉ gọi một số API nhất định).
+## Hai khái niệm quan trọng: RTO và RPO
 
-...Hình ảnh...
+### Recovery Time Objective (RTO)
 
-...Link...
+RTO là khoảng thời gian tối đa chấp nhận được để đưa hệ thống trở lại hoạt động sau sự cố.
 
-...Hướng dẫn...
+Ví dụ, nếu QuickBite có RTO là 4 giờ, đội vận hành cần có runbook và tài nguyên để phục hồi frontend, backend và database trong tối đa 4 giờ.
+
+### Recovery Point Objective (RPO)
+
+RPO là lượng dữ liệu tối đa có thể mất, thường được diễn tả bằng thời gian.
+
+Nếu RPO là 24 giờ, hệ thống có thể chấp nhận mất dữ liệu phát sinh từ lần backup gần nhất trong vòng một ngày. Nếu RPO chỉ vài phút, cơ chế sao lưu hoặc replication phải thường xuyên hơn và chi phí cũng cao hơn.
+
+RTO/RPO không nên được chọn theo cảm tính. Chúng cần phản ánh mức độ quan trọng của workload và khả năng tài chính.
+
+## Bốn chiến lược DR phổ biến trên AWS
+
+### 1. Backup and Restore
+
+Đây là cách đơn giản và tiết kiệm nhất. Dữ liệu được sao lưu định kỳ; khi có sự cố, hệ thống được dựng lại và restore từ backup.
+
+Ví dụ với QuickBite production:
+
+- snapshot RDS tự động;
+- S3 Versioning cho bucket ảnh;
+- source và deployment runbook nằm trong repository;
+- export cấu hình hoặc Infrastructure as Code;
+- kiểm thử restore định kỳ.
+
+Ưu điểm là chi phí thấp. Nhược điểm là RTO thường dài hơn vì cần tạo lại tài nguyên.
+
+### 2. Pilot Light
+
+Dữ liệu cốt lõi và một phần hạ tầng quan trọng được duy trì ở môi trường dự phòng, còn compute đầy đủ chưa chạy. Khi có sự cố, hệ thống bật thêm tài nguyên để phục vụ traffic.
+
+Pilot Light có RTO tốt hơn Backup and Restore nhưng cần quản lý đồng bộ dữ liệu và hạ tầng dự phòng.
+
+### 3. Warm Standby
+
+Một phiên bản thu nhỏ của workload chạy sẵn ở site hoặc Region dự phòng. Khi primary gặp sự cố, môi trường standby được scale lên.
+
+Cách này phục hồi nhanh hơn Pilot Light, nhưng tốn chi phí vì luôn có tài nguyên đang chạy.
+
+### 4. Multi-site Active/Active
+
+Nhiều site/Region cùng phục vụ traffic. Nếu một nơi gặp sự cố, nơi còn lại tiếp tục hoạt động.
+
+Đây là hướng có RTO rất thấp nhưng phức tạp và đắt nhất. Với một project thực tập như QuickBite, lựa chọn này không hợp lý cho demo.
+
+## Áp dụng cho QuickBite
+
+### Kiến trúc demo hiện tại
+
+QuickBite demo được thiết kế tiết kiệm:
+
+- một EC2 t3.micro;
+- một RDS PostgreSQL db.t3.micro, **Single-AZ**;
+- S3 cho frontend và ảnh;
+- CloudFront;
+- CloudWatch Logs/Alarm;
+- Budgets và Cost Explorer.
+
+Kiến trúc này có single points of failure. Nếu EC2 hoặc RDS gặp sự cố, dịch vụ có thể gián đoạn. Demo cũng chưa triển khai AWS Backup, cross-region snapshot hay Multi-AZ.
+
+Việc ghi rõ giới hạn này là quan trọng. Một sơ đồ đẹp không thay thế cho khả năng phục hồi thật.
+
+### Hướng DR phù hợp
+
+Với quy mô QuickBite, **Backup and Restore** là bước đầu hợp lý:
+
+1. bật automated backup cho RDS trong môi trường cần giữ dữ liệu;
+2. tạo manual snapshot trước thay đổi lớn;
+3. bật S3 Versioning cho bucket ảnh quan trọng;
+4. giữ Dockerfile, Compose, SQL và runbook trong repository;
+5. ghi lại biến cấu hình cần phục hồi, nhưng không lưu secret thật;
+6. định kỳ restore thử sang một database mới;
+7. test ứng dụng kết nối database vừa restore;
+8. đo thời gian thực tế để kiểm tra RTO.
+
+Nếu QuickBite trở thành sản phẩm thật, có thể nâng RDS lên Multi-AZ và thiết kế hạ tầng bằng IaC. Multi-AZ giúp failover trong Region nhưng không thay thế mọi chiến lược DR.
+
+## Cleanup demo không phải Disaster Recovery
+
+Trong hướng dẫn demo, RDS có thể được xóa bằng `--skip-final-snapshot` để tránh chi phí khi dữ liệu chỉ là seed/test và không cần giữ lại.
+
+Điều đó **không** nên áp dụng cho production.
+
+Cần phân biệt:
+
+| Tình huống | Cách xử lý |
+|---|---|
+| Môi trường demo có dữ liệu giả | có thể xóa và skip final snapshot |
+| Môi trường test cần tái hiện lỗi | tạo snapshot trước khi xóa |
+| Môi trường production | backup policy, final snapshot và restore test bắt buộc |
+
+Cleanup là hoạt động kiểm soát chi phí. DR là khả năng phục hồi dữ liệu và dịch vụ. Hai mục tiêu này liên quan nhưng không giống nhau.
+
+## Backup chỉ có giá trị khi restore được
+
+Một bài học quan trọng là: backup chưa từng restore thử thì chưa thể coi là phương án phục hồi đã được kiểm chứng.
+
+Một restore drill đơn giản cho QuickBite có thể gồm:
+
+1. tạo snapshot RDS;
+2. restore thành instance mới;
+3. dùng EC2 hoặc một test client có network phù hợp để kết nối;
+4. chạy `\dt` và kiểm tra sample orders;
+5. trỏ backend test sang endpoint mới;
+6. chạy `/health`, login, đọc menu và tạo một đơn test;
+7. ghi lại thời gian restore;
+8. xóa tài nguyên test sau khi hoàn thành.
+
+Quá trình này giúp phát hiện password/config sai, thiếu permission, schema không đủ hoặc runbook không còn chính xác.
+
+## Bài học rút ra
+
+Disaster Recovery không phải chỉ dành cho ngân hàng hoặc hệ thống rất lớn. Ngay cả một project nhỏ cũng nên trả lời được:
+
+- dữ liệu quan trọng nằm ở đâu;
+- có backup hay không;
+- ai chịu trách nhiệm restore;
+- RTO/RPO là bao nhiêu;
+- runbook có được test không;
+- chi phí của mức bảo vệ đó có phù hợp không.
+
+Với QuickBite, demo ưu tiên chi phí nên dùng Single-AZ và chưa có DR đầy đủ. Báo cáo trung thực ghi đó là giới hạn hiện tại, đồng thời đề xuất Backup and Restore, RDS snapshots, S3 Versioning, restore test và Multi-AZ ở giai đoạn production.
+
+## Nguồn tham khảo
+
+- [Disaster recovery options in the cloud](https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html)
+- [Business continuity plan: RTO and RPO](https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/business-continuity-plan-bcp.html)
+- [Disaster Recovery architecture on AWS: Pilot Light and Warm Standby](https://aws.amazon.com/blogs/architecture/disaster-recovery-dr-architecture-on-aws-part-iii-pilot-light-and-warm-standby/)
+- [Designing sustainable disaster recovery strategies](https://aws.amazon.com/blogs/storage/designing-sustainable-disaster-recovery-strategies/)

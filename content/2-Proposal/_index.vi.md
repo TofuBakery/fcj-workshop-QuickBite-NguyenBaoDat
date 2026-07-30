@@ -1,108 +1,179 @@
 ---
 title: "Bản đề xuất"
-date: 2024-01-01
+date: 2026-07-30
 weight: 2
 chapter: false
 pre: " <b> 2. </b> "
+includeInReport: false
 ---
-{{% notice warning %}}
-⚠️ **Lưu ý:** Các thông tin dưới đây chỉ nhằm mục đích tham khảo, vui lòng **không sao chép nguyên văn** cho bài báo cáo của bạn kể cả warning này.
-{{% /notice %}}
+# Đề xuất dự án QuickBite trên AWS
 
-Tại phần này, bạn cần tóm tắt các nội dung trong workshop mà bạn **dự tính** sẽ làm.
+## 1. Tổng quan
 
-# IoT Weather Platform for Lab Research  
-## Giải pháp AWS Serverless hợp nhất cho giám sát thời tiết thời gian thực  
+QuickBite là nền tảng đặt món dành cho căng-tin, văn phòng hoặc mô hình giao nhận nội bộ. Hệ thống hỗ trợ bốn nhóm người dùng:
 
-### 1. Tóm tắt điều hành  
-IoT Weather Platform được thiết kế dành cho nhóm *ITea Lab* tại TP. Hồ Chí Minh nhằm nâng cao khả năng thu thập và phân tích dữ liệu thời tiết. Nền tảng hỗ trợ tối đa 5 trạm thời tiết, có khả năng mở rộng lên 10–15 trạm, sử dụng thiết bị biên Raspberry Pi kết hợp cảm biến ESP32 để truyền dữ liệu qua MQTT. Nền tảng tận dụng các dịch vụ AWS Serverless để cung cấp giám sát thời gian thực, phân tích dự đoán và tiết kiệm chi phí, với quyền truy cập giới hạn cho 5 thành viên phòng lab thông qua Amazon Cognito.  
+- **Customer:** xem menu, tạo đơn, thanh toán COD/mock e-wallet, theo dõi và tra cứu đơn;
+- **Admin:** quản lý món, danh mục, cấu hình, đơn hàng, dashboard và báo cáo;
+- **Kitchen:** nhận và xử lý đơn trong bếp;
+- **Delivery:** nhận đơn sẵn sàng và hoàn tất giao hàng.
 
-### 2. Tuyên bố vấn đề  
-*Vấn đề hiện tại*  
-Các trạm thời tiết hiện tại yêu cầu thu thập dữ liệu thủ công, khó quản lý khi có nhiều trạm. Không có hệ thống tập trung cho dữ liệu hoặc phân tích thời gian thực, và các nền tảng bên thứ ba thường tốn kém và quá phức tạp.  
+Baseline local sử dụng React/Vite, FastAPI, PostgreSQL, Docker Compose và Mailpit. Mục tiêu của proposal là đưa baseline này lên AWS bằng một kiến trúc đủ thực tế để demo, kiểm thử, theo dõi và dọn dẹp trong giới hạn ngân sách thực tập.
 
-*Giải pháp*  
-Nền tảng sử dụng AWS IoT Core để tiếp nhận dữ liệu MQTT, AWS Lambda và API Gateway để xử lý, Amazon S3 để lưu trữ (bao gồm data lake), và AWS Glue Crawlers cùng các tác vụ ETL để trích xuất, chuyển đổi, tải dữ liệu từ S3 data lake sang một S3 bucket khác để phân tích. AWS Amplify với Next.js cung cấp giao diện web, và Amazon Cognito đảm bảo quyền truy cập an toàn. Tương tự như Thingsboard và CoreIoT, người dùng có thể đăng ký thiết bị mới và quản lý kết nối, nhưng nền tảng này hoạt động ở quy mô nhỏ hơn và phục vụ mục đích sử dụng nội bộ. Các tính năng chính bao gồm bảng điều khiển thời gian thực, phân tích xu hướng và chi phí vận hành thấp.  
+## 2. Bài toán cần giải quyết
 
-*Lợi ích và hoàn vốn đầu tư (ROI)*  
-Giải pháp tạo nền tảng cơ bản để các thành viên phòng lab phát triển một nền tảng IoT lớn hơn, đồng thời cung cấp nguồn dữ liệu cho những người nghiên cứu AI phục vụ huấn luyện mô hình hoặc phân tích. Nền tảng giảm bớt báo cáo thủ công cho từng trạm thông qua hệ thống tập trung, đơn giản hóa quản lý và bảo trì, đồng thời cải thiện độ tin cậy dữ liệu. Chi phí hàng tháng ước tính 0,66 USD (theo AWS Pricing Calculator), tổng cộng 7,92 USD cho 12 tháng. Tất cả thiết bị IoT đã được trang bị từ hệ thống trạm thời tiết hiện tại, không phát sinh chi phí phát triển thêm. Thời gian hoàn vốn 6–12 tháng nhờ tiết kiệm đáng kể thời gian thao tác thủ công.  
+Một hệ thống đặt món local chưa giải quyết được các yêu cầu quan trọng của môi trường thật:
 
-### 3. Kiến trúc giải pháp  
-Nền tảng áp dụng kiến trúc AWS Serverless để quản lý dữ liệu từ 5 trạm dựa trên Raspberry Pi, có thể mở rộng lên 15 trạm. Dữ liệu được tiếp nhận qua AWS IoT Core, lưu trữ trong S3 data lake và xử lý bởi AWS Glue Crawlers và ETL jobs để chuyển đổi và tải vào một S3 bucket khác cho mục đích phân tích. Lambda và API Gateway xử lý bổ sung, trong khi Amplify với Next.js cung cấp bảng điều khiển được bảo mật bởi Cognito.  
+1. người dùng bên ngoài không thể truy cập ổn định;
+2. frontend, backend và database chưa được tách theo trách nhiệm vận hành;
+3. ảnh món ăn chưa có nơi lưu trữ cloud;
+4. thiếu log tập trung, alarm và kiểm soát chi phí;
+5. chưa có quy trình triển khai, kiểm thử và clean-up có thể lặp lại;
+6. nếu đưa kiến trúc quá lớn vào báo cáo nhưng không có URL hoặc screenshot, project sẽ thiếu tính kiểm chứng.
 
-![IoT Weather Station Architecture](/images/2-Proposal/edge_architecture.jpeg)
+Vì vậy, QuickBite chọn kiến trúc **demo có bằng chứng**, không cố mô tả một hệ thống enterprise chưa được triển khai.
 
-![IoT Weather Platform Architecture](/images/2-Proposal/platform_architecture.jpeg)
+## 3. Mục tiêu
 
-*Dịch vụ AWS sử dụng*  
-- *AWS IoT Core*: Tiếp nhận dữ liệu MQTT từ 5 trạm, mở rộng lên 15.  
-- *AWS Lambda*: Xử lý dữ liệu và kích hoạt Glue jobs (2 hàm).  
-- *Amazon API Gateway*: Giao tiếp với ứng dụng web.  
-- *Amazon S3*: Lưu trữ dữ liệu thô (data lake) và dữ liệu đã xử lý (2 bucket).  
-- *AWS Glue*: Crawlers lập chỉ mục dữ liệu, ETL jobs chuyển đổi và tải dữ liệu.  
-- *AWS Amplify*: Lưu trữ giao diện web Next.js.  
-- *Amazon Cognito*: Quản lý quyền truy cập cho người dùng phòng lab.  
+### Mục tiêu chức năng
 
-*Thiết kế thành phần*  
-- *Thiết bị biên*: Raspberry Pi thu thập và lọc dữ liệu cảm biến, gửi tới IoT Core.  
-- *Tiếp nhận dữ liệu*: AWS IoT Core nhận tin nhắn MQTT từ thiết bị biên.  
-- *Lưu trữ dữ liệu*: Dữ liệu thô lưu trong S3 data lake; dữ liệu đã xử lý lưu ở một S3 bucket khác.  
-- *Xử lý dữ liệu*: AWS Glue Crawlers lập chỉ mục dữ liệu; ETL jobs chuyển đổi để phân tích.  
-- *Giao diện web*: AWS Amplify lưu trữ ứng dụng Next.js cho bảng điều khiển và phân tích thời gian thực.  
-- *Quản lý người dùng*: Amazon Cognito giới hạn 5 tài khoản hoạt động.  
+- phục vụ đầy đủ luồng customer → admin → kitchen → delivery;
+- lưu dữ liệu giao dịch trên PostgreSQL;
+- upload ảnh món qua endpoint `/uploads/image`;
+- cung cấp dashboard, báo cáo CSV, audit log và order tracking;
+- hỗ trợ health check và kiểm thử end-to-end.
 
-### 4. Triển khai kỹ thuật  
-*Các giai đoạn triển khai*  
-Dự án gồm 2 phần — thiết lập trạm thời tiết biên và xây dựng nền tảng thời tiết — mỗi phần trải qua 4 giai đoạn:  
-1. *Nghiên cứu và vẽ kiến trúc*: Nghiên cứu Raspberry Pi với cảm biến ESP32 và thiết kế kiến trúc AWS Serverless (1 tháng trước kỳ thực tập).  
-2. *Tính toán chi phí và kiểm tra tính khả thi*: Sử dụng AWS Pricing Calculator để ước tính và điều chỉnh (Tháng 1).  
-3. *Điều chỉnh kiến trúc để tối ưu chi phí/giải pháp*: Tinh chỉnh (ví dụ tối ưu Lambda với Next.js) để đảm bảo hiệu quả (Tháng 2).  
-4. *Phát triển, kiểm thử, triển khai*: Lập trình Raspberry Pi, AWS services với CDK/SDK và ứng dụng Next.js, sau đó kiểm thử và đưa vào vận hành (Tháng 2–3).  
+### Mục tiêu AWS
 
-*Yêu cầu kỹ thuật*  
-- *Trạm thời tiết biên*: Cảm biến (nhiệt độ, độ ẩm, lượng mưa, tốc độ gió), vi điều khiển ESP32, Raspberry Pi làm thiết bị biên. Raspberry Pi chạy Raspbian, sử dụng Docker để lọc dữ liệu và gửi 1 MB/ngày/trạm qua MQTT qua Wi-Fi.  
-- *Nền tảng thời tiết*: Kiến thức thực tế về AWS Amplify (lưu trữ Next.js), Lambda (giảm thiểu do Next.js xử lý), AWS Glue (ETL), S3 (2 bucket), IoT Core (gateway và rules), và Cognito (5 người dùng). Sử dụng AWS CDK/SDK để lập trình (ví dụ IoT Core rules tới S3). Next.js giúp giảm tải Lambda cho ứng dụng web fullstack.  
+- phân phối React qua Amazon CloudFront và private Amazon S3;
+- chạy FastAPI trong Docker trên một Amazon EC2;
+- dùng Amazon RDS for PostgreSQL private, Single-AZ cho demo;
+- lưu ảnh món trong Amazon S3;
+- gửi container logs đến Amazon CloudWatch Logs;
+- tạo CloudWatch CPU alarm và gửi email qua Amazon SNS;
+- cấp quyền bằng IAM role theo least privilege;
+- kiểm soát chi phí bằng AWS Budgets và Cost Explorer;
+- có hướng dẫn clean-up để tránh phát sinh chi phí.
 
-### 5. Lộ trình & Mốc triển khai  
-- *Trước thực tập (Tháng 0)*: 1 tháng lên kế hoạch và đánh giá trạm cũ.  
-- *Thực tập (Tháng 1–3)*:  
-    - Tháng 1: Học AWS và nâng cấp phần cứng.  
-    - Tháng 2: Thiết kế và điều chỉnh kiến trúc.  
-    - Tháng 3: Triển khai, kiểm thử, đưa vào sử dụng.  
-- *Sau triển khai*: Nghiên cứu thêm trong vòng 1 năm.  
+## 4. Kiến trúc demo được đề xuất
 
-### 6. Ước tính ngân sách  
-Có thể xem chi phí trên [AWS Pricing Calculator](https://calculator.aws/#/estimate?id=621f38b12a1ef026842ba2ddfe46ff936ed4ab01)  
-Hoặc tải [tệp ước tính ngân sách](../attachments/budget_estimation.pdf).  
+```text
+Customer / Admin / Kitchen / Delivery
+                    |
+                 HTTPS
+                    v
+             Amazon CloudFront
+               /             \
+              /               \ API behaviors
+     Private S3 web             v
+ quickbite-web-<env>      EC2 t3.micro
+                         Docker + FastAPI
+                          quickbite-app
+                           /          \
+                    TCP 5432          \ /uploads/image
+                       v               v
+             Private RDS             S3 menu images
+       PostgreSQL db.t3.micro   quickbite-menu-images-<env>
+              Single-AZ
 
-*Chi phí hạ tầng*  
-- AWS Lambda: 0,00 USD/tháng (1.000 request, 512 MB lưu trữ).  
-- S3 Standard: 0,15 USD/tháng (6 GB, 2.100 request, 1 GB quét).  
-- Truyền dữ liệu: 0,02 USD/tháng (1 GB vào, 1 GB ra).  
-- AWS Amplify: 0,35 USD/tháng (256 MB, request 500 ms).  
-- Amazon API Gateway: 0,01 USD/tháng (2.000 request).  
-- AWS Glue ETL Jobs: 0,02 USD/tháng (2 DPU).  
-- AWS Glue Crawlers: 0,07 USD/tháng (1 crawler).  
-- MQTT (IoT Core): 0,08 USD/tháng (5 thiết bị, 45.000 tin nhắn).  
+EC2 container logs ──> CloudWatch Logs: quickbite/backend
+EC2 CPU metric ──────> Alarm: quickbite-cpu-high ──> SNS email
+EC2 IAM role ────────> S3 menu/* + CloudWatch Logs
+Budgets / Cost Explorer ───────> cost visibility and alerts
+```
 
-*Tổng*: 0,7 USD/tháng, 8,40 USD/12 tháng  
-- *Phần cứng*: 265 USD một lần (Raspberry Pi 5 và cảm biến).  
+### Thành phần hiện tại của demo
 
-### 7. Đánh giá rủi ro  
-*Ma trận rủi ro*  
-- Mất mạng: Ảnh hưởng trung bình, xác suất trung bình.  
-- Hỏng cảm biến: Ảnh hưởng cao, xác suất thấp.  
-- Vượt ngân sách: Ảnh hưởng trung bình, xác suất thấp.  
+| Thành phần | Lựa chọn | Lý do |
+|---|---|---|
+| Frontend | S3 private + CloudFront OAC | HTTPS, CDN, không cần web server riêng |
+| Backend | 1 EC2 t3.micro chạy Docker/FastAPI | Bám sát source và dễ quan sát trong workshop |
+| Database | RDS PostgreSQL db.t3.micro, 20 GB, private, Single-AZ | Managed database, phù hợp ngân sách demo |
+| Ảnh món | S3 `quickbite-menu-images-<env>` | Object storage phù hợp file ảnh |
+| Logging | CloudWatch Logs `quickbite/backend` | Log tập trung từ Docker `awslogs` |
+| Alert | CloudWatch CPU alarm + SNS email | Có bằng chứng monitoring mà không cần ALB |
+| Identity | EC2 IAM role | Không hard-code access key |
+| Cost | Budgets + Cost Explorer | Cảnh báo và theo dõi chi phí |
 
-*Chiến lược giảm thiểu*  
-- Mạng: Lưu trữ cục bộ trên Raspberry Pi với Docker.  
-- Cảm biến: Kiểm tra định kỳ, dự phòng linh kiện.  
-- Chi phí: Cảnh báo ngân sách AWS, tối ưu dịch vụ.  
+### Không thuộc phạm vi demo hiện tại
 
-*Kế hoạch dự phòng*  
-- Quay lại thu thập thủ công nếu AWS gặp sự cố.  
-- Sử dụng CloudFormation để khôi phục cấu hình liên quan đến chi phí.  
+Các thành phần dưới đây là **Future / Planned**, không được trình bày như đã triển khai:
 
-### 8. Kết quả kỳ vọng  
-*Cải tiến kỹ thuật*: Dữ liệu và phân tích thời gian thực thay thế quy trình thủ công. Có thể mở rộng tới 10–15 trạm.  
-*Giá trị dài hạn*: Nền tảng dữ liệu 1 năm cho nghiên cứu AI, có thể tái sử dụng cho các dự án tương lai.
+- Route 53 và custom domain;
+- API Gateway;
+- Application Load Balancer;
+- Auto Scaling Group;
+- RDS Multi-AZ;
+- AWS WAF và AWS Shield cấu hình riêng;
+- AWS Secrets Manager;
+- AWS Backup và cross-region snapshot;
+- EventBridge/SQS;
+- Lambda + SES cho email production.
+
+Mailpit vẫn là email mock ở local. Lambda + SES chỉ là hướng optional/future.
+
+## 5. Liên hệ AWS Well-Architected Framework
+
+| Trụ cột | Áp dụng trong demo | Hướng phát triển |
+|---|---|---|
+| Operational Excellence | runbook, health check, CloudWatch Logs, alarm, evidence checklist, cleanup | Infrastructure as Code, CI/CD |
+| Security | RDS private, SG theo nguồn, IAM role, bucket web private/OAC, không commit `.env` | Secrets Manager/Parameter Store, WAF, TLS backend bằng ALB/ACM |
+| Reliability | health check, managed RDS, persistent database, runbook lỗi | Multi-AZ, automated backup, restore drills |
+| Performance Efficiency | CloudFront cho static content, t3.micro phù hợp demo | Auto Scaling, ALB, load testing |
+| Cost Optimization | t3.micro/db.t3.micro, Single-AZ, Budget, cleanup | right-sizing theo metric, lifecycle policy |
+| Sustainability | managed services, dừng/xóa tài nguyên không dùng | tự động hóa shutdown và lifecycle |
+
+## 6. Timeline 8 tuần
+
+| Giai đoạn | Tuần | Nội dung |
+|---|---:|---|
+| Khảo sát và scope | 1–2 | yêu cầu FCAJ, source review, AWS CLI, IAM và bảo mật |
+| Ổn định ứng dụng | 3 | Docker, PostgreSQL, role flow và E2E local |
+| Thiết kế cloud | 4–5 | Proposal, Well-Architected, VPC/RDS/EC2/S3/CloudFront |
+| Chuẩn bị triển khai | 6–7 | file deploy, CORS, mixed content, upload ảnh và cleanup |
+| Kiểm thử và báo cáo | 8 | AWS validation, CloudWatch, alarm, blog, references và evidence checklist |
+
+## 7. Ngân sách dự kiến
+
+Project sử dụng tài nguyên kích thước nhỏ và chỉ duy trì trong thời gian demo:
+
+- 1 EC2 t3.micro;
+- 1 RDS db.t3.micro Single-AZ, 20 GB;
+- hai S3 bucket;
+- một CloudFront distribution;
+- CloudWatch Logs/Alarm và SNS email;
+- AWS Budgets.
+
+Chi phí thực tế phải được lấy từ **Billing/Cost Explorer** sau khi triển khai. Báo cáo không tự khẳng định một con số nếu chưa có dữ liệu billing. Sau demo, tài nguyên sẽ được xóa theo `cleanup.md`.
+
+## 8. Rủi ro và biện pháp xử lý
+
+| Rủi ro | Ảnh hưởng | Biện pháp |
+|---|---|---|
+| RDS private không truy cập từ laptop | không nạp được schema | nạp schema từ EC2 bằng `psql` |
+| Compose khởi chạy PostgreSQL local | backend không dùng RDS | dùng `docker-compose.aws.yml` chỉ có backend |
+| CloudFront HTTPS gọi EC2 HTTP | mixed content | CloudFront API origin/behaviors; ALB+ACM là future |
+| CORS sai domain | frontend không gọi được API | cập nhật CloudFront domain và restart backend |
+| IAM quá rộng | tăng blast radius | EC2 role giới hạn bucket/prefix/action |
+| Secret bị commit | lộ credential | `.gitignore`, placeholder, tạo secret runtime |
+| Chi phí tiếp tục phát sinh | vượt ngân sách | Budget, tag, cleanup checklist, kiểm tra Cost Explorer |
+| Claim không có bằng chứng | báo cáo thiếu tin cậy | evidence matrix cho từng service/URL/test |
+
+## 9. Tiêu chí thành công
+
+Project chỉ được đánh dấu hoàn thành AWS khi có đủ bằng chứng:
+
+1. CloudFront mở được frontend và refresh deep link thành công;
+2. `/health` và `/docs` của backend hoạt động qua đường truy cập demo;
+3. backend đọc/ghi RDS private;
+4. customer tạo đơn và các role xử lý hết luồng;
+5. upload ảnh tạo object trong S3 và ảnh hiển thị lại;
+6. CloudWatch có container log;
+7. CPU alarm và SNS subscription được cấu hình;
+8. Budget được tạo;
+9. có screenshot/terminal output cho các bước chính;
+10. có clean-up evidence và kiểm tra chi phí sau khi xóa.
+
+## 10. Repository
+
+- [QuickBite repository](https://github.com/edrictrn/quickbite)
+- [Snapshot commit `6c79b99`](https://github.com/edrictrn/quickbite/tree/6c79b99049949e8cd28ae196c9792f4abff2e3db)

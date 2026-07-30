@@ -1,59 +1,37 @@
 ---
-title: "Worklog Tuần 3"
-date: 2024-01-01
-weight: 1
+title: "Nhật ký tuần 3"
+date: 2026-07-30
+weight: 3
 chapter: false
 pre: " <b> 1.3. </b> "
 ---
-{{% notice warning %}}
-⚠️ **Lưu ý:** Các thông tin dưới đây chỉ nhằm mục đích tham khảo, vui lòng **không sao chép nguyên văn** cho bài báo cáo của bạn kể cả warning này.
-{{% /notice %}}
-
-
 ### Mục tiêu tuần 3:
 
-* Kết nối, làm quen với các thành viên trong First Cloud AI Journey.
-* Hiểu dịch vụ AWS cơ bản, cách dùng console & CLI.
+* Ổn định QuickBite trước khi chuyển các thành phần lên AWS.
+* Kiểm tra đầy đủ luồng đặt món, thanh toán và xử lý đơn.
 
-### Các công việc cần triển khai trong tuần này:
-| Thứ | Công việc                                                                                                                                                                                   | Ngày bắt đầu | Ngày hoàn thành | Nguồn tài liệu                            |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | --------------- | ----------------------------------------- |
-| 2   | - Làm quen với các thành viên FCAJ <br> - Đọc và lưu ý các nội quy, quy định tại đơn vị thực tập                                                                                             | 11/08/2025   | 11/08/2025      |
-| 3   | - Tìm hiểu AWS và các loại dịch vụ <br>&emsp; + Compute <br>&emsp; + Storage <br>&emsp; + Networking <br>&emsp; + Database <br>&emsp; + ... <br>                                            | 12/08/2025   | 12/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 4   | - Tạo AWS Free Tier account <br> - Tìm hiểu AWS Console & AWS CLI <br> - **Thực hành:** <br>&emsp; + Tạo AWS account <br>&emsp; + Cài AWS CLI & cấu hình <br> &emsp; + Cách sử dụng AWS CLI | 13/08/2025   | 13/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 5   | - Tìm hiểu EC2 cơ bản: <br>&emsp; + Instance types <br>&emsp; + AMI <br>&emsp; + EBS <br>&emsp; + ... <br> - Các cách remote SSH vào EC2 <br> - Tìm hiểu Elastic IP   <br>                  | 14/08/2025   | 15/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 6   | - **Thực hành:** <br>&emsp; + Tạo EC2 instance <br>&emsp; + Kết nối SSH <br>&emsp; + Gắn EBS volume                                                                                         | 15/08/2025   | 15/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
+### Các công việc đã thực hiện trong tuần:
 
+| Ngày làm việc | Công việc | Ngày bắt đầu | Ngày hoàn thành | Tài liệu tham khảo |
+|---:|---|---|---|---|
+| 1 | Rà soát Dockerfile và docker-compose.yml cho frontend, backend, PostgreSQL và Mailpit; kiểm tra health check và volume. | 16/06/2026 | 18/06/2026 | [Docker Compose](https://docs.docker.com/compose/) |
+| 2 | Kiểm thử đăng ký, đăng nhập, JWT và phân quyền cho customer, admin, kitchen staff và delivery staff. | 16/06/2026 | 19/06/2026 | [QuickBite authentication code](https://github.com/edrictrn/quickbite/tree/6c79b99049949e8cd28ae196c9792f4abff2e3db) |
+| 3 | Kiểm thử menu, giỏ hàng, COD, mock e-wallet, phí giao hàng, thuế và cách tính tổng tiền bằng Decimal/NUMERIC. | 17/06/2026 | 20/06/2026 | [QuickBite order and payment modules](https://github.com/edrictrn/quickbite/tree/6c79b99049949e8cd28ae196c9792f4abff2e3db) |
+| 4 | Kiểm tra state transition và order_status_history từ pending, confirmed, preparing, ready đến completed/cancelled. | 18/06/2026 | 20/06/2026 | [QuickBite order workflow](https://github.com/edrictrn/quickbite/tree/6c79b99049949e8cd28ae196c9792f4abff2e3db) |
+| 5 | Chạy pytest và script e2e_local.py; ghi lại lỗi, cách tái hiện và kết quả sau khi sửa. | 19/06/2026 | 21/06/2026 | [QuickBite tests](https://github.com/edrictrn/quickbite/tree/6c79b99049949e8cd28ae196c9792f4abff2e3db) |
+| 6 | Đối chiếu thành phần local với dịch vụ AWS tương ứng: PostgreSQL sang RDS, ảnh sang S3, log sang CloudWatch. | 20/06/2026 | 21/06/2026 | [Amazon RDS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html) |
 
 ### Kết quả đạt được tuần 3:
 
-* Hiểu AWS là gì và nắm được các nhóm dịch vụ cơ bản: 
-  * Compute
-  * Storage
-  * Networking 
-  * Database
-  * ...
-
-* Đã tạo và cấu hình AWS Free Tier account thành công.
-
-* Làm quen với AWS Management Console và biết cách tìm, truy cập, sử dụng dịch vụ từ giao diện web.
-
-* Cài đặt và cấu hình AWS CLI trên máy tính bao gồm:
-  * Access Key
-  * Secret Key
-  * Region mặc định
-  * ...
-
-* Sử dụng AWS CLI để thực hiện các thao tác cơ bản như:
-
-  * Kiểm tra thông tin tài khoản & cấu hình
-  * Lấy danh sách region
-  * Xem dịch vụ EC2
-  * Tạo và quản lý key pair
-  * Kiểm tra thông tin dịch vụ đang chạy
-  * ...
-
-* Có khả năng kết nối giữa giao diện web và CLI để quản lý tài nguyên AWS song song.
-* ...
-
-
+* Hiểu rõ cách các container frontend, backend, PostgreSQL và Mailpit giao tiếp trong môi trường Docker Compose.
+* Rà soát được Dockerfile, health check và volume; biết thành phần nào cần giữ lại khi chuyển sang AWS.
+* Kiểm tra được quá trình đăng ký, đăng nhập, JWT và quyền truy cập của customer, admin, kitchen staff và delivery staff.
+* Xác nhận được các chức năng chính của luồng đặt món:
+  * Hiển thị menu và quản lý giỏ hàng.
+  * Thanh toán COD và mock e-wallet.
+  * Tính phí giao hàng, thuế và tổng tiền.
+  * Theo dõi trạng thái đơn hàng.
+* Kiểm tra được state transition và bảng `order_status_history` từ pending đến completed hoặc cancelled.
+* Chạy được bộ test và script E2E local; biết cách ghi lại lỗi, điều kiện tái hiện và kết quả sau khi sửa.
+* Xác nhận dữ liệu tiền được xử lý bằng Decimal/NUMERIC thay vì kiểu số thực không phù hợp.
+* Hoàn thiện một baseline local đủ ổn định để tiếp tục thiết kế và chuẩn bị triển khai AWS.
