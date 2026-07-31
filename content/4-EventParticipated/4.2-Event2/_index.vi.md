@@ -102,7 +102,7 @@ Bài trình bày cũng nhấn mạnh các giới hạn quan trọng:
 - tác vụ phức tạp có thể tiêu tốn nhiều task-hour nên cần theo dõi chi phí;
 - công cụ tự động không thay thế hoàn toàn review của con người và quy trình quản trị rủi ro.
 
-Điểm quan trọng nhất tôi rút ra là bảo mật nên được đưa vào sớm trong vòng đời phát triển: từ review kiến trúc, review pull request đến kiểm thử ứng dụng đang chạy, thay vì chỉ kiểm tra vào cuối dự án.
+Điểm quan trọng nhất em rút ra là bảo mật nên được đưa vào sớm trong vòng đời phát triển: từ review kiến trúc, review pull request đến kiểm thử ứng dụng đang chạy, thay vì chỉ kiểm tra vào cuối dự án.
 
 ## Bài học chính
 
@@ -127,7 +127,7 @@ Bài trình bày cũng nhấn mạnh các giới hạn quan trọng:
 
 ## Ứng dụng vào QuickBite và công việc
 
-Sau sự kiện, tôi liên hệ các nội dung với QuickBite như sau:
+Sau sự kiện, em liên hệ các nội dung với QuickBite như sau:
 
 - **Cloud Practitioner:** dùng các domain của chứng chỉ để rà soát lại project theo bốn nhóm: cloud concept, security, service selection và cost management.
 - **Shared Responsibility:** phân biệt rõ AWS chịu trách nhiệm cho hạ tầng cloud, còn QuickBite chịu trách nhiệm về cấu hình IAM, Security Group, mã nguồn, dữ liệu và trải nghiệm đặt món.
@@ -139,17 +139,17 @@ Sau sự kiện, tôi liên hệ các nội dung với QuickBite như sau:
 - **Security review:** AWS Security Agent được ghi nhận như một lựa chọn thử nghiệm trong tương lai cho review kiến trúc hoặc pull request, không được mô tả là thành phần đang chạy trong QuickBite.
 - **Runbook:** bổ sung checklist khi login hoặc tạo đơn thất bại: kiểm tra log ứng dụng, kết nối RDS, Security Group, database metric và các thay đổi gần nhất.
 
-Phần monitoring là nội dung liên hệ trực tiếp nhất với QuickBite. Trước sự kiện, tôi chủ yếu nghĩ đến CPU, log và trạng thái instance. Sau phần demo, tôi hiểu rằng một project thuyết phục hơn cần chứng minh được cả luồng nghiệp vụ: khách hàng đăng nhập, tạo đơn, bếp nhận đơn, giao hàng cập nhật trạng thái và khách hàng xem kết quả.
+Phần monitoring là nội dung liên hệ trực tiếp nhất với QuickBite. Trước sự kiện, em chủ yếu nghĩ đến CPU, log và trạng thái instance. Sau phần demo, em hiểu rằng một project thuyết phục hơn cần chứng minh được cả luồng nghiệp vụ: khách hàng đăng nhập, tạo đơn, bếp nhận đơn, giao hàng cập nhật trạng thái và khách hàng xem kết quả.
 
 ## Trải nghiệm sự kiện
 
 Sự kiện thứ hai mang tính tập trung hơn sự kiện đầu tiên. Ba bài trình bày tạo thành một chuỗi kiến thức khá hợp lý: bắt đầu từ nền tảng AWS và định hướng chứng chỉ, chuyển sang cách vận hành workload, sau đó mở rộng sang bảo mật ứng dụng bằng AI agent.
 
-Phần SLA và monitoring để lại ấn tượng mạnh nhất vì ví dụ rất gần với tình huống thực tế. Một hệ thống có thể trông ổn trên dashboard nhưng vẫn thất bại ở bước quan trọng nhất đối với người dùng. Điều này giúp tôi thay đổi cách nhìn về bằng chứng trong báo cáo QuickBite: ảnh EC2 “Running” hoặc RDS “Available” là cần thiết, nhưng chưa đủ; tôi còn phải chụp kết quả đăng nhập, tạo đơn, đọc/ghi database và log tương ứng.
+Phần SLA và monitoring để lại ấn tượng mạnh nhất vì ví dụ rất gần với tình huống thực tế. Một hệ thống có thể trông ổn trên dashboard nhưng vẫn thất bại ở bước quan trọng nhất đối với người dùng. Điều này giúp em thay đổi cách nhìn về bằng chứng trong báo cáo QuickBite: ảnh EC2 “Running” hoặc RDS “Available” là cần thiết, nhưng chưa đủ; em còn phải chụp kết quả đăng nhập, tạo đơn, đọc/ghi database và log tương ứng.
 
-Phần Cloud Practitioner giúp tôi hệ thống hóa lại nhiều dịch vụ đã sử dụng trong project, đồng thời hiểu rõ hơn cách giải thích lý do chọn EC2, S3, RDS, CloudFront, CloudWatch, IAM và Budgets. Phần AWS Security Agent cho tôi thêm góc nhìn về DevSecOps, nhưng cũng nhắc rằng công cụ hiện đại không thể thay thế kiến thức nền tảng, review thủ công và hiểu biết về business logic.
+Phần Cloud Practitioner giúp em hệ thống hóa lại nhiều dịch vụ đã sử dụng trong project, đồng thời hiểu rõ hơn cách giải thích lý do chọn EC2, S3, RDS, CloudFront, CloudWatch, IAM và Budgets. Phần AWS Security Agent cho em thêm góc nhìn về DevSecOps, nhưng cũng nhắc rằng công cụ hiện đại không thể thay thế kiến thức nền tảng, review thủ công và hiểu biết về business logic.
 
-Không khí sự kiện trực tiếp cũng tạo cơ hội quan sát cách các diễn giả trình bày demo, giải thích vấn đề và dẫn dắt người nghe từ một tình huống đơn giản đến bài học kiến trúc. Đây là kinh nghiệm hữu ích cho cách tôi trình bày phần Workshop QuickBite sau này.
+Không khí sự kiện trực tiếp cũng tạo cơ hội quan sát cách các diễn giả trình bày demo, giải thích vấn đề và dẫn dắt người nghe từ một tình huống đơn giản đến bài học kiến trúc. Đây là kinh nghiệm hữu ích cho cách em trình bày phần Workshop QuickBite sau này.
 
 ## Bài học rút ra
 

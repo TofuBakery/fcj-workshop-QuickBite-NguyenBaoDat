@@ -1,102 +1,59 @@
 ---
 title: "Điều kiện tiên quyết"
-date: 2026-07-30
+date: 2026-07-31
 weight: 2
 chapter: false
 pre: " <b> 5.2. </b> "
 ---
 # Điều kiện tiên quyết
 
-## 1. Tài khoản và Region
+## 1. Môi trường em sử dụng
 
-- tài khoản AWS có quyền tạo EC2, RDS, S3, CloudFront, IAM role, CloudWatch, SNS và Budget;
-- không sử dụng root account cho công việc hằng ngày;
-- bật MFA cho tài khoản quan trọng;
-- Region: `ap-southeast-1`;
-- tạo AWS Budget trước khi tạo tài nguyên.
+- Windows 11 và PowerShell;
+- AWS CLI v2;
+- Terraform phiên bản 1.5 trở lên;
+- Docker Desktop;
+- Node.js LTS và npm;
+- Git;
+- Hugo Extended để kiểm tra website báo cáo;
+- AWS Region **ap-southeast-1**.
 
-## 2. Công cụ local
+## 2. Tài khoản và bảo mật ban đầu
 
-```text
-Git
-Docker Desktop / Docker Engine
-Docker Compose plugin
-Node.js và npm
-AWS CLI
-SSH client
-PostgreSQL client (có thể cài trên EC2)
-Hugo Extended để xem báo cáo
-```
+Trong giai đoạn đầu, em phát hiện access key của root account đã xuất hiện trong screenshot. Em chuyển sang IAM user riêng, xóa key root đã lộ và chỉ dùng credential của IAM identity cho AWS CLI. Từ thời điểm đó, mọi screenshot đều được kiểm tra để tránh lộ Access Key, Secret Key, database password hoặc JWT secret.
 
-Kiểm tra:
+## 3. Cấu trúc source
 
-```bash
-git --version
-docker --version
-docker compose version
-node --version
-npm --version
-aws --version
-hugo version
-```
-
-## 3. Source code
-
-```bash
-git clone https://github.com/edrictrn/quickbite.git
-cd quickbite
-```
-
-Không commit:
-
-```text
-.env
-*.pem
-database password
-AWS access key
-application secret
-```
-
-## 4. Naming convention
-
-| Resource | Tên đề xuất |
+| Thành phần | Nội dung |
 |---|---|
-| EC2 | `quickbite-app` |
-| EC2 IAM role | `quickbite-ec2-role` |
-| EC2 security group | `quickbite-ec2-sg` |
-| RDS | `quickbite-db` |
-| RDS security group | `quickbite-rds-sg` |
-| Web bucket | `quickbite-web-<env>` |
-| Image bucket | `quickbite-menu-images-<env>` |
-| Log group | `quickbite/backend` |
-| CPU alarm | `quickbite-cpu-high` |
+| Backend | FastAPI, SQLAlchemy, Alembic, PostgreSQL schema, tests và Dockerfile |
+| Frontend | React, TypeScript, Vite, Material UI và production build |
+| Terraform bootstrap | S3 remote state, DynamoDB lock và ECR |
+| Terraform stack | network, data và app modules |
+| Report | Hugo song ngữ, kiến trúc, worklog và ảnh minh chứng |
 
-Thay `<env>` bằng giá trị duy nhất như tên viết tắt hoặc môi trường.
+## 4. Cấu trúc Terraform
 
-## 5. Quyền và network
+| Thư mục | Trách nhiệm |
+|---|---|
+| **terraform/bootstrap** | Tạo state bucket, lock table và ECR trước |
+| **terraform/stack/modules/network** | VPC, subnets, route tables, NAT, endpoints và Security Groups |
+| **terraform/stack/modules/data** | RDS Multi-AZ và Secrets Manager |
+| **terraform/stack/modules/app** | ALB, ASG, IAM, CloudWatch, SNS, S3 và CloudFront |
+| **terraform/stack** | Kết nối ba module và xuất web_url, api_url, bucket và log group |
 
-- EC2 role: `s3:GetObject`, `s3:PutObject` cho đúng bucket/prefix và quyền ghi CloudWatch Logs;
-- port 22: chỉ My IP;
-- RDS 5432: source là EC2 security group;
-- RDS Public access: `No`;
-- web S3 bucket: private, truy cập bằng CloudFront OAC.
+## 5. Các giá trị triển khai chính
 
-## 6. File triển khai cần có
+- instance type: **t3.micro**;
+- database class: **db.t3.micro**;
+- RDS Multi-AZ: **true**;
+- Auto Scaling Group: **min 2, desired 2, max 4**;
+- CloudWatch CPU threshold: **70% trong hai chu kỳ 300 giây**;
+- Region: **ap-southeast-1**;
+- frontend và image buckets: private;
+- EC2: private subnet, quản trị bằng SSM;
+- RDS: isolated subnet, chỉ nhận TCP 5432 từ App Security Group.
 
-- `docker-compose.aws.yml`;
-- backend `Dockerfile`;
-- frontend production Dockerfile/build config;
-- `.env.example`;
-- SQL schema/seed/views;
-- `docs/deploy-walkthrough.md`;
-- `docs/cleanup.md`.
+## 6. Tệp dự án
 
-## 7. Checklist trước khi bắt đầu
-
-- [ ] AWS Budget đã tạo;
-- [ ] key pair `.pem` được lưu an toàn;
-- [ ] region đúng;
-- [ ] source không chứa secret;
-- [ ] local E2E đã chạy;
-- [ ] đã hiểu phạm vi demo/future;
-- [ ] có thư mục lưu screenshot và terminal output.
+- [Mã nguồn QuickBite](../../attachments/quickbite-source.zip)

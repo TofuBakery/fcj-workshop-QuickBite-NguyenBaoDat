@@ -10,7 +10,7 @@ includeInReport: false
 
 The most valuable aspect of FCAJ is that it does not stop at requiring an application to “run.” Learners must explain why services were selected, how data flows, how permissions are granted, where logs are stored, how cost is controlled, and how resources are removed at the end.
 
-For QuickBite, this approach changed how I viewed the project. React, FastAPI, and PostgreSQL are only the application layer. On AWS, I also need to handle private RDS, Security Groups, IAM roles, S3 policies, CloudFront, CORS, mixed content, logs, alarms, and clean-up.
+For QuickBite, this approach changed how I viewed the project. React, FastAPI, and PostgreSQL are only the application layer. On AWS, I also need to handle a two-Availability-Zone VPC, ALB, Auto Scaling, Multi-AZ RDS, Security Groups, IAM roles, S3 policies, CloudFront, Terraform, logs, alarms, and clean-up.
 
 ## Satisfaction
 

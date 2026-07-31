@@ -1,348 +1,90 @@
 ---
 title: "AWS Deployment"
-date: 2026-07-30
+date: 2026-07-31
 weight: 4
 chapter: false
 pre: " <b> 5.4. </b> "
 ---
-# Step-by-step AWS deployment
+# AWS Deployment with Terraform
 
-**Region:** `ap-southeast-1`  
-**Architecture:** S3 + CloudFront frontend · EC2 Docker/FastAPI backend · private RDS PostgreSQL · S3 menu images · CloudWatch Logs/Alarm.
+## 1. Infrastructure bootstrap
 
-> API Gateway is not used. Replace all `<...>` values with real resources.
+I deployed the bootstrap stack first to create three foundational resources:
 
-## Phase 0 — Budget, CLI, and key pair
+- a versioned, AES-256 encrypted S3 bucket for Terraform remote state;
+- a DynamoDB table to prevent concurrent state writes;
+- the **quickbite-backend** ECR repository with scan-on-push.
 
-1. Create an AWS Budget with a small threshold appropriate for the demo and add an alert email.
-2. Configure the CLI:
+{{< report-image src="images/5-Workshop/evidence/ecr-repository.png" alt="QuickBite Amazon ECR repository" caption="The quickbite-backend ECR repository stores the FastAPI backend image." >}}
 
-```bash
-aws configure
-aws sts get-caller-identity
-aws configure get region
-```
+After bootstrap, I used the **state_bucket**, **lock_table**, and **ecr_repository_url** outputs to configure the main stack.
 
-3. Select `ap-southeast-1`.
-4. Create `quickbite-key.pem`.
-5. On Linux/macOS:
+## 2. Build and push the backend image
 
-```bash
-chmod 400 quickbite-key.pem
-```
+I built the backend from its Dockerfile, tagged it with the ECR repository URL, and pushed it to ECR. The Launch Template does not contain source code; each EC2 instance authenticates through its IAM role, pulls the versioned image, and runs the same configuration.
 
-6. Ensure `.env` and `.pem` are not tracked by Git.
+## 3. Main Terraform stack
 
-**Evidence:** Budget, identity command, region, and key-pair metadata.
+The main stack wires the **network**, **data**, and **app** modules. Terraform plan described the VPC, subnets, ALB, ASG, RDS, S3, CloudFront, IAM, Secret, log group, alarms, and SNS before apply. The final apply created 58 resources.
 
-## Phase 1 — Create the menu-image S3 bucket
+### Network module
 
-Create:
+- VPC in ap-southeast-1;
+- two public subnets for the ALB and NAT Gateways;
+- two private application subnets for EC2;
+- two isolated database subnets for RDS;
+- Security Group chaining: ALB-SG → App-SG:8000 → DB-SG:5432.
 
-```text
-quickbite-menu-images-<env>
-```
+### Data module
 
-Recommended:
+- encrypted Multi-AZ RDS PostgreSQL db.t3.micro;
+- a DB subnet group across two isolated subnets;
+- Secrets Manager containing DATABASE_URL and the JWT secret.
 
-- keep Block Public Access;
-- allow the EC2 IAM role to work only under `menu/*`;
-- use a CloudFront URL or a carefully designed read policy when images must be public;
-- never grant `s3:*` on `*`.
+### App module
 
-Backend settings:
+- ALB, Target Group, and **/health** health check;
+- Launch Template and Auto Scaling Group with min 2, desired 2, max 4;
+- target tracking with a 60% CPU target;
+- private web and menu-images S3 buckets;
+- two CloudFront distributions;
+- IAM role, instance profile, ECR read-only, SSM core, and a scoped inline policy;
+- CloudWatch log group, CPU alarm, and SNS email.
 
-```env
-AWS_REGION=ap-southeast-1
-S3_BUCKET_NAME=quickbite-menu-images-<env>
-MENU_IMAGE_BASE_URL=https://<image-delivery-domain>
-```
+{{< report-image src="images/5-Workshop/evidence/ec2-two-az.png" alt="Two QuickBite EC2 instances across Availability Zones" caption="The Auto Scaling Group maintains two t3.micro instances in ap-southeast-1a and ap-southeast-1b; both passed all 3/3 status checks." >}}
 
-**Evidence:** bucket properties, IAM policy, and an object under `menu/`.
+## 4. S3 and CloudFront
 
-## Phase 2 — Create private RDS PostgreSQL
+Terraform created three buckets:
 
-1. Create `quickbite-rds-sg` with no inbound rule initially.
-2. Create RDS:
+- **quickbite-web-a64511** for the frontend;
+- **quickbite-menu-images-a64511** for menu images;
+- **quickbite-tfstate-46a21a** for remote state.
 
-```text
-Identifier: quickbite-db
-Engine: PostgreSQL
-Class: db.t3.micro
-Storage: 20 GB
-Public access: No
-Availability: Single-AZ for demo
-Database user: quickbite
-```
+{{< report-image src="images/5-Workshop/evidence/s3-buckets.png" alt="QuickBite S3 buckets" caption="The web, menu-images, and Terraform-state buckets in ap-southeast-1." >}}
 
-3. Record the endpoint, but never capture the password in screenshots.
+Public access is blocked for both content buckets. CloudFront Origin Access Control is the only principal allowed to read objects.
 
-**Important:** private RDS cannot be initialized directly from the laptop. Load the schema from EC2.
+{{< report-image src="images/5-Workshop/evidence/cloudfront-distributions.png" alt="Two QuickBite CloudFront distributions" caption="Two enabled CloudFront distributions: one for the ALB/API and one for web + menu images." >}}
 
-**Evidence:** RDS `Available`, private connectivity, class/storage, and endpoint.
+## 5. IAM, secrets, and instance management
 
-## Phase 3 — EC2, IAM role, and security group
+The EC2 instance profile is declared in the Launch Template. Its role has only the required permissions:
 
-### IAM role
+- read the application secret;
+- read and write objects in the menu-images bucket;
+- deliver logs to the QuickBite log group;
+- pull images from ECR;
+- connect through Systems Manager Session Manager.
 
-Create `quickbite-ec2-role` with EC2 as the trusted entity. The policy should scope:
+{{< report-image src="images/5-Workshop/evidence/iam-roles.png" alt="IAM roles in the AWS account" caption="IAM roles and service-linked roles support Auto Scaling, Elastic Load Balancing, RDS, and the EC2 application instances." >}}
 
-- S3 list/get/put to the exact bucket/prefix;
-- CloudWatch Logs stream/event actions to the exact log group.
+I used SSM to load the schema, seed data, and views into RDS from inside the VPC. This kept the database private and avoided opening port 5432 to my laptop.
 
-### EC2
+## 6. Frontend build
 
-```text
-Name: quickbite-app
-AMI: Ubuntu 24.04
-Instance type: t3.micro
-IAM instance profile: quickbite-ec2-role
-Key pair: quickbite-key
-```
+After Terraform exported **api_url** and **frontend_bucket**, I built React with the CloudFront API domain as the API base, then synchronized the dist directory to the web S3 bucket. SPA fallback maps 403/404 responses to index.html so routes such as admin, menu, and order tracking still work after refresh.
 
-### Security group
+## 7. Attachment
 
-`quickbite-ec2-sg`:
-
-| Port | Source | Purpose |
-|---:|---|---|
-| 22 | My IP | SSH |
-| 80 or demo origin port | based on access design | backend/origin |
-| 8000 | temporary direct testing only | FastAPI test |
-
-Do not expose SSH to the entire Internet unnecessarily.
-
-**Evidence:** instance, attached role, and SG rules.
-
-## Phase 4 — Connect EC2 to RDS
-
-Add to `quickbite-rds-sg`:
-
-```text
-Type: PostgreSQL
-Port: 5432
-Source: quickbite-ec2-sg
-```
-
-Do not use `0.0.0.0/0`.
-
-**Evidence:** inbound rule referencing the EC2 security group ID.
-
-## Phase 5 — SSH to EC2 and initialize RDS
-
-```bash
-ssh -i quickbite-key.pem ubuntu@<ec2-public-ip>
-sudo apt update
-sudo apt install -y docker.io docker-compose-plugin git postgresql-client
-sudo usermod -aG docker ubuntu
-newgrp docker
-git clone https://github.com/edrictrn/quickbite.git
-cd quickbite
-```
-
-Create a runtime connection string:
-
-```bash
-export DB="postgresql://quickbite:<db-password>@<rds-endpoint>:5432/quickbite"
-```
-
-Load data from EC2:
-
-```bash
-psql "$DB" -f backend/sql/schema_postgres.sql
-psql "$DB" -f backend/sql/seed_postgres.sql
-psql "$DB" -f backend/sql/views_postgres.sql
-psql "$DB" -c "\dt"
-```
-
-**Evidence:** `\dt`, a sample query, and RDS connections.
-
-## Phase 6 — Run the backend with `docker-compose.aws.yml`
-
-Create `.env` on EC2:
-
-```bash
-cat > .env <<'EOF'
-DATABASE_URL=postgresql://quickbite:<db-password>@<rds-endpoint>:5432/quickbite
-SECRET_KEY=<generate-a-long-random-secret>
-CORS_ALLOW_ORIGINS=https://<cloudfront-domain>
-AWS_REGION=ap-southeast-1
-S3_BUCKET_NAME=quickbite-menu-images-<env>
-MENU_IMAGE_BASE_URL=https://<image-delivery-domain>
-SHOW_DEMO_ACCOUNTS=false
-EOF
-chmod 600 .env
-```
-
-Generate a secret:
-
-```bash
-openssl rand -hex 32
-```
-
-Start:
-
-```bash
-docker compose -f docker-compose.aws.yml up --build -d
-docker ps
-curl http://localhost:8000/health
-```
-
-`docker-compose.aws.yml` contains only the backend and never launches local PostgreSQL.
-
-**Evidence:** `docker ps`, health output, and configuration without exposed secrets.
-
-## Phase 7 — Test the backend
-
-```text
-http://<ec2-public-ip>:8000/health
-http://<ec2-public-ip>:8000/docs
-```
-
-Test:
-
-- login;
-- GET menu;
-- create an order;
-- role-based status changes;
-- query RDS to confirm data;
-- report endpoints;
-- invalid token/permission cases.
-
-> Public port 8000 is appropriate only for short testing. A production architecture should use ALB + ACM or another protected reverse proxy.
-
-## Phase 8 — Test image upload
-
-1. sign in as admin;
-2. call `/uploads/image`;
-3. confirm the object exists at:
-
-```text
-s3://quickbite-menu-images-<env>/menu/<object>
-```
-
-4. confirm the frontend displays the image URL;
-5. test file type/size validation;
-6. test upload with insufficient permissions.
-
-**Evidence:** request, S3 object, and displayed image.
-
-## Phase 9 — Build the frontend and upload to S3
-
-On the local machine:
-
-```bash
-cd frontend
-npm ci
-VITE_API_BASE="" npm run build
-aws s3 sync dist/ s3://quickbite-web-<env> --delete
-```
-
-Create a CloudFront distribution:
-
-- origin: private web S3 bucket;
-- Origin Access Control;
-- Default root object: `index.html`;
-- custom error 403 → `/index.html` status 200;
-- custom error 404 → `/index.html` status 200.
-
-**Evidence:** distribution domain, OAC, bucket policy, and deep-link refresh.
-
-## Phase 10 — API paths, CORS, and mixed content
-
-CloudFront HTTPS cannot have the browser call EC2 HTTP directly without mixed-content errors.
-
-Demo approach:
-
-1. add EC2 as a second origin;
-2. create behaviors for backend paths, for example:
-
-```text
-/auth/*
-/menu/*
-/orders/*
-/payments/*
-/reports/*
-/uploads/*
-/settings/*
-/admin/*
-/kitchen/*
-/delivery/*
-```
-
-3. use relative paths with `VITE_API_BASE=""`;
-4. allow the exact CloudFront domain in backend CORS;
-5. restart the backend after changing `.env`.
-
-Future production approach: ALB + ACM for backend HTTPS.
-
-**Evidence:** browser network tab, CORS headers, and no mixed-content error.
-
-## Phase 11 — CloudWatch Logs and CPU Alarm
-
-`docker-compose.aws.yml` uses Docker `awslogs` with:
-
-```text
-quickbite/backend
-```
-
-Verify request/startup/error logs in CloudWatch Logs.
-
-Create:
-
-```text
-Name: quickbite-cpu-high
-Metric: EC2 CPUUtilization
-Threshold: > 70%
-Period/evaluation: 5 minutes, according to the demo setting
-Action: SNS email
-```
-
-SNS is used only for alarm notifications.
-
-Do not claim a 5xx alarm unless an ALB or custom metric actually exists.
-
-**Evidence:** log events, alarm configuration/state, and SNS subscription confirmation.
-
-## Phase 12 — Optional Lambda + SES
-
-The source contains Lambda/SES documentation and sample code, but this remains optional/future.
-
-Planned flow:
-
-```text
-OrderCreated (future event)
-    -> Lambda
-    -> Amazon SES
-```
-
-Local email remains Mailpit. Mark this complete only when the function, trigger, SES identity, logs, and real email are evidenced.
-
-## Phase 13 — Evidence and clean-up
-
-Before clean-up, capture:
-
-- RDS Available and `\dt`;
-- `/health` and `/docs`;
-- CloudFront frontend;
-- end-to-end order flow;
-- S3 menu image;
-- CloudWatch logs;
-- CPU alarm;
-- Budget;
-- CORS/mixed-content test.
-
-Then follow the Clean-up page.
-
-## Common errors
-
-| Symptom | Cause/fix |
-|---|---|
-| `psql` from the laptop times out | RDS is private; run from EC2 |
-| Compose starts a local DB | wrong file; use `docker-compose.aws.yml` |
-| backend says `could not connect to server` | check SG 5432, endpoint, and `DATABASE_URL` |
-| frontend CORS error | CloudFront domain is missing or backend was not restarted |
-| browser blocks mixed content | use CloudFront API origin/behaviors |
-| route refresh returns 403/404 | map error responses to `/index.html` |
-| image is missing | check bucket/prefix, IAM, and `MENU_IMAGE_BASE_URL` |
-| no CloudWatch logs | check IAM role, region, log group, and `awslogs` configuration |
+- [QuickBite source](../../attachments/quickbite-source.zip)

@@ -1,75 +1,55 @@
 ---
 title: "Tổng quan"
-date: 2026-07-30
+date: 2026-07-31
 weight: 1
 chapter: false
 pre: " <b> 5.1. </b> "
 ---
 # Tổng quan Workshop
 
-## QuickBite giải quyết vấn đề gì?
+## 1. Bài toán QuickBite
 
-QuickBite số hóa quy trình đặt món và xử lý đơn giữa khách hàng, quản trị viên, bếp và nhân viên giao hàng. Dữ liệu giao dịch được lưu trong PostgreSQL; frontend và backend được tách riêng; ảnh món được lưu ở object storage.
+QuickBite số hóa luồng đặt món và vận hành giữa khách hàng, quản trị viên, bếp và giao hàng. Backend FastAPI xử lý xác thực, menu, order, payment, report, audit log và upload ảnh. PostgreSQL lưu dữ liệu giao dịch; React cung cấp storefront và các giao diện theo vai trò.
 
-## Business flow
+## 2. Luồng nghiệp vụ
 
-```text
-1. Customer tạo đơn
-2. FastAPI/EC2 kiểm tra dữ liệu và ghi đơn
-3. RDS PostgreSQL lưu order, order items và payment
-4. Kitchen xử lý đơn
-5. Delivery giao đơn
-6. Customer nhận và theo dõi trạng thái
-```
+1. Customer xem menu và tạo đơn.
+2. Backend kiểm tra dữ liệu, tính tổng tiền ở server và ghi order vào PostgreSQL.
+3. Admin xác nhận hoặc quản lý đơn.
+4. Kitchen chuyển đơn qua các trạng thái chuẩn bị.
+5. Delivery nhận đơn sẵn sàng và hoàn tất giao hàng.
+6. Customer theo dõi trạng thái bằng tài khoản hoặc mã tra cứu.
 
-## Kiến trúc local
+## 3. Kiến trúc AWS đã triển khai
 
-```text
-React/Vite :5173
-      |
-FastAPI :8000
-      |
-PostgreSQL :5432
-      |
-Mailpit :8025 (email mock)
-```
+{{< report-image src="images/5-Workshop/quickbite-aws-architecture-ha.png" alt="Sơ đồ kiến trúc QuickBite trên AWS" caption="Sơ đồ kiến trúc High Availability hai Availability Zone được triển khai bằng Terraform." >}}
 
-## Kiến trúc AWS demo
+Kiến trúc gồm ba lớp chính:
 
-```text
-Users
-  |
-  v
-CloudFront
-  |----------------------> S3 private: quickbite-web-<env>
-  |
-  +-- API path ----------> EC2 t3.micro: Docker + FastAPI
-                                  |
-                         TCP 5432 | /uploads/image
-                                  v
-                    RDS PostgreSQL private       S3 menu images
+- **Global edge:** CloudFront cung cấp HTTPS và cache cho frontend, ảnh món và API;
+- **Application layer:** ALB phân phối request đến EC2 Auto Scaling Group trong hai private subnet;
+- **Data layer:** RDS PostgreSQL Multi-AZ nằm trong isolated database subnets.
 
-EC2 logs --> CloudWatch Logs --> CPU Alarm --> SNS email
-EC2 IAM role --> scoped S3 + CloudWatch permissions
-Budgets / Cost Explorer --> cost control
-```
+Các dịch vụ ECR, Secrets Manager, Systems Manager, CloudWatch, SNS, IAM, Budgets và Cost Explorer hỗ trợ triển khai, bảo mật, quan sát và vận hành.
 
-## Vì sao chọn kiến trúc này?
+## 4. Hai CloudFront distributions
 
-- bám sát cấu trúc source hiện tại;
-- sử dụng ít nhất ba dịch vụ AWS và thể hiện một use case hoàn chỉnh;
-- RDS private giúp database không mở trực tiếp ra Internet;
-- CloudFront phù hợp frontend static;
-- S3 phù hợp lưu ảnh;
-- EC2 cho phép giữ backend Docker và dễ quan sát trong workshop;
-- CloudWatch cung cấp log/alarm có thể chụp bằng chứng;
-- Single-AZ và một EC2 giúp kiểm soát chi phí demo.
+Em tách CloudFront thành hai distribution:
 
-## Giới hạn
+- **Web distribution:** origin mặc định là S3 frontend và behavior **/menu/** trỏ đến S3 menu images;
+- **API distribution:** origin là Application Load Balancer và tắt cache cho request API.
 
-Kiến trúc demo chưa có high availability đầy đủ. EC2 và RDS Single-AZ vẫn là single points of failure. Các dịch vụ nâng cao được ghi ở phần Future, không trình bày như đã triển khai.
+Cách tách này tránh xung đột giữa route React **/menu** và endpoint FastAPI **/menu**, đồng thời giữ HTTPS ở phía người dùng mà không cần mua custom domain.
 
-## Source
+## 5. High Availability
 
-- [Repository](https://github.com/edrictrn/quickbite)
-- [Snapshot commit](https://github.com/edrictrn/quickbite/tree/6c79b99049949e8cd28ae196c9792f4abff2e3db)
+- ALB được đặt trên hai public subnet tại hai Availability Zone;
+- Auto Scaling Group duy trì hai EC2 ở hai private subnet;
+- Launch Template giúp instance mới có cùng AMI, IAM profile, user data và Docker configuration;
+- RDS Multi-AZ tạo standby đồng bộ và hỗ trợ failover managed;
+- ALB health check dùng endpoint **/health** để loại target không khỏe;
+- target tracking scaling policy theo dõi CPU trung bình của Auto Scaling Group.
+
+## 6. Kết quả triển khai
+
+Frontend và API hoạt động qua CloudFront. Hai EC2 đều ở trạng thái Running và vượt qua 3/3 status checks. API health trả về service **quickbite-api**, version **1.4.0**. Admin dashboard, menu, upload ảnh, CloudWatch alarms và SNS email đều có bằng chứng thực tế trong phần Validation.

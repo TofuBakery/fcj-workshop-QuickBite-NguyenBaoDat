@@ -1,83 +1,54 @@
 ---
-title: "Môi trường local"
-date: 2026-07-30
+title: "Baseline local"
+date: 2026-07-31
 weight: 3
 chapter: false
 pre: " <b> 5.3. </b> "
 ---
 # Baseline local
 
-Trước khi tạo tài nguyên AWS, QuickBite phải chạy ổn định ở local. Việc này giúp phân biệt lỗi ứng dụng với lỗi cloud configuration.
+## 1. Kiến trúc trước khi deploy
 
-## 1. Khởi động từ dữ liệu sạch
+Trước khi tạo tài nguyên AWS, em hoàn thiện QuickBite ở local với bốn container chính:
 
-```bash
-docker compose down -v
-docker compose up --build
-```
+| Thành phần | Công nghệ |
+|---|---|
+| Frontend | React, TypeScript và Vite |
+| Backend | FastAPI và Uvicorn |
+| Database | PostgreSQL |
+| Email mock | Mailpit |
 
-Các địa chỉ dự kiến:
+Docker Compose giúp em kiểm tra ứng dụng trong một môi trường gần giống production trước khi chuyển database sang RDS và backend sang EC2.
 
-```text
-Frontend: http://127.0.0.1:5173
-Backend:  http://127.0.0.1:8000
-Swagger:  http://127.0.0.1:8000/docs
-Health:   http://127.0.0.1:8000/health
-Mailpit:  http://127.0.0.1:8025
-```
+## 2. Các luồng đã kiểm tra
 
-## 2. Kiểm tra health
+- đăng ký, đăng nhập và khôi phục phiên;
+- phân quyền customer, admin, kitchen và delivery;
+- tìm kiếm, lọc, sắp xếp và thêm món vào giỏ;
+- tạo đơn COD và mock e-wallet;
+- tính subtotal, delivery fee, tax và total ở server;
+- admin xác nhận và quản lý đơn;
+- kitchen chuyển preparing và ready;
+- delivery hoàn tất giao hàng;
+- order tracking bằng code và token;
+- dashboard, CSV report và audit log;
+- upload ảnh có kiểm tra định dạng và dung lượng;
+- email mock qua Mailpit;
+- health endpoint và automated tests.
 
-```bash
-curl http://127.0.0.1:8000/health
-```
+## 3. Thay đổi để phù hợp AWS
 
-Kết quả mong đợi:
+Từ baseline local, em tách các thành phần theo dịch vụ:
 
-```json
-{"status":"ok"}
-```
+- PostgreSQL local được thay bằng RDS PostgreSQL;
+- frontend production build được đưa lên S3 và CloudFront;
+- backend Docker image được push lên ECR;
+- backend chạy trên EC2 Auto Scaling Group;
+- file ảnh chuyển sang S3 menu-images;
+- secret chuyển từ file local sang Secrets Manager;
+- SSH được thay bằng SSM Session Manager;
+- stdout/stderr container được đưa vào CloudWatch Logs.
 
-## 3. Automated tests
+## 4. Lý do giữ baseline local
 
-```bash
-docker compose exec   -e DATABASE_URL=sqlite:///./quickbite.db   -e EMAIL_ENABLED=false   backend pytest -q
-```
-
-E2E script:
-
-```bash
-docker compose exec   -e DATABASE_URL=sqlite:///./quickbite.db   -e EMAIL_ENABLED=false   backend python scripts/e2e_local.py
-```
-
-## 4. Manual business-flow test
-
-1. customer đăng nhập;
-2. thêm món vào giỏ;
-3. tạo đơn COD;
-4. tạo đơn mock e-wallet và thanh toán mô phỏng;
-5. admin xác nhận;
-6. kitchen chuyển preparing → ready;
-7. delivery hoàn thành;
-8. customer xem lịch sử/tracking;
-9. kiểm tra Mailpit;
-10. kiểm tra dashboard, reports và operation logs.
-
-## 5. Điểm cần ghi minh bạch
-
-- mock e-wallet là mô phỏng, không tích hợp cổng thanh toán thật;
-- Mailpit là email mock local;
-- status transition và audit trail sau mock payment cần tiếp tục siết chặt;
-- upload S3 chỉ hoạt động khi có bucket/role AWS;
-- tài khoản demo phải ẩn trong production build.
-
-## 6. Evidence local
-
-- Docker containers đang healthy;
-- frontend bốn role;
-- Swagger và `/health`;
-- PostgreSQL tables;
-- Mailpit email;
-- pytest/E2E output.
-
-Các ảnh local không thay thế bằng chứng AWS.
+Baseline local giúp em phân biệt lỗi ứng dụng và lỗi hạ tầng. Khi một lỗi xuất hiện sau khi deploy, em có thể so sánh với kết quả local để xác định vấn đề nằm ở code, environment variable, network, IAM, CloudFront, database hay công cụ CLI.

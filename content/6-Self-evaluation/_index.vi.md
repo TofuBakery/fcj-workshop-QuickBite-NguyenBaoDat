@@ -1,40 +1,37 @@
 ---
 title: "Tự đánh giá"
-date: 2026-07-30
+date: 2026-07-31
 weight: 6
 chapter: false
 pre: " <b> 6. </b> "
 includeInReport: false
 ---
-Trong chương trình FCAJ, tôi phát triển QuickBite từ một ứng dụng chạy local thành một dự án có kế hoạch triển khai AWS và tài liệu kỹ thuật tương đối đầy đủ. Quá trình này giúp tôi rèn luyện React, FastAPI, PostgreSQL, Docker, IAM, EC2, RDS, S3, CloudFront, CloudWatch, kiểm soát chi phí, viết tài liệu và trình bày song ngữ.
+Trong chương trình FCAJ, em phát triển QuickBite từ một ứng dụng local thành một hệ thống được triển khai trên AWS bằng Terraform. Quá trình này giúp em kết hợp kiến thức React, FastAPI, PostgreSQL và Docker với VPC, CloudFront, S3, ALB, Auto Scaling, EC2, RDS Multi-AZ, ECR, Secrets Manager, SSM, IAM, CloudWatch và SNS.
 
-Tôi cũng nhận ra một dự án cloud không chỉ được đánh giá bằng việc source code có chạy hay không. Kiến trúc, quyền truy cập, monitoring, kiểm thử, chi phí, quy trình clean-up và bằng chứng triển khai đều cần được giải thích rõ ràng và nhất quán.
-
-Để nhìn nhận khách quan quá trình tham gia chương trình, tôi tự đánh giá theo các tiêu chí sau:
+Em hiểu rõ hơn rằng một dự án cloud không chỉ được đánh giá bằng việc source code chạy được. Kiến trúc, phân quyền, network isolation, monitoring, chi phí, khả năng tái tạo hạ tầng và bằng chứng triển khai đều phải nhất quán.
 
 | STT | Tiêu chí | Mô tả | Tốt | Khá | Trung bình |
 | ---: | --- | --- | :---: | :---: | :---: |
-| 1 | **Kiến thức và kỹ năng chuyên môn** | Áp dụng React, FastAPI, PostgreSQL, Docker và kiến thức AWS vào QuickBite |  | **X** |  |
-| 2 | **Khả năng học hỏi** | Tìm hiểu dịch vụ AWS mới, đọc tài liệu và điều chỉnh báo cáo khi yêu cầu thay đổi | **X** |  |  |
-| 3 | **Tính chủ động** | Chủ động khảo sát source code, chuẩn bị tài liệu triển khai và hoàn thành công việc | **X** |  |  |
-| 4 | **Tinh thần trách nhiệm** | Hoàn thành các phần được giao và kiểm tra sự nhất quán giữa dự án với báo cáo | **X** |  |  |
-| 5 | **Kỷ luật** | Thực hiện kế hoạch công việc và duy trì worklog thường xuyên |  | **X** |  |
-| 6 | **Tinh thần cầu tiến** | Tiếp nhận góp ý, sửa các mô tả kiến trúc chưa chính xác và cải thiện báo cáo nhiều lần | **X** |  |  |
-| 7 | **Giao tiếp** | Trình bày luồng nghiệp vụ QuickBite, kiến trúc AWS, giới hạn và hướng phát triển |  | **X** |  |
-| 8 | **Làm việc nhóm** | Học hỏi từ các buổi community, trao đổi ý tưởng và tiếp thu phản hồi |  | **X** |  |
-| 9 | **Tác phong chuyên nghiệp** | Tôn trọng yêu cầu chương trình và trình bày thông tin kỹ thuật trung thực | **X** |  |  |
-| 10 | **Kỹ năng giải quyết vấn đề** | Phân tích các vấn đề Docker, RDS private, CORS, mixed content, IAM và monitoring | **X** |  |  |
-| 11 | **Đóng góp cho dự án** | Hoàn thiện luồng bốn vai trò, Docker baseline, AWS runbook, blog, event và checklist clean-up | **X** |  |  |
-| 12 | **Đánh giá chung** | Kết quả tổng thể trong quá trình tham gia chương trình FCAJ | **X** |  |  |
+| 1 | **Kiến thức và kỹ năng chuyên môn** | Kết hợp full-stack development, Docker, AWS và Terraform trong QuickBite | **X** |  |  |
+| 2 | **Khả năng học hỏi** | Tự nghiên cứu dịch vụ AWS, Terraform modules và xử lý lỗi môi trường | **X** |  |  |
+| 3 | **Tính chủ động** | Chủ động chuyển kiến trúc từ baseline đơn sang HA hai Availability Zone | **X** |  |  |
+| 4 | **Tinh thần trách nhiệm** | Kiểm tra lại claim bằng ảnh, log, health check và demo thực tế | **X** |  |  |
+| 5 | **Kỷ luật** | Duy trì worklog, quản lý source và rà soát báo cáo song ngữ |  | **X** |  |
+| 6 | **Tinh thần cầu tiến** | Tiếp nhận góp ý và sửa kiến trúc, nội dung cùng cách trình bày nhiều lần | **X** |  |  |
+| 7 | **Giao tiếp** | Trình bày business flow, trade-off, sự cố và kết quả triển khai |  | **X** |  |
+| 8 | **Làm việc nhóm** | Trao đổi trong các buổi community và phối hợp hoàn thiện project |  | **X** |  |
+| 9 | **Tác phong chuyên nghiệp** | Không dùng root key, che credential và phân biệt cấu hình với bằng chứng | **X** |  |  |
+| 10 | **Giải quyết vấn đề** | Xử lý AWS CLI, PowerShell, Terraform, SSM, CloudFront, IAM và frontend build | **X** |  |  |
+| 11 | **Đóng góp cho dự án** | Hoàn thiện ứng dụng, hạ tầng Terraform, monitoring và báo cáo | **X** |  |  |
+| 12 | **Đánh giá chung** | Kết quả tổng thể trong chương trình FCAJ | **X** |  |  |
 
 ### Điểm cần cải thiện
 
-- Hoàn thành triển khai AWS thực tế và bổ sung URL, hình ảnh, log cùng kết quả kiểm thử cuối cùng.
-- Rèn tính kỷ luật trong việc lưu screenshot và commit reference ngay sau mỗi đầu việc.
-- Trình bày demo ngắn gọn hơn và tập trung vào hành trình end-to-end của người dùng.
-- Tăng cường bảo mật production bằng cách đưa secret ra khỏi `.env` và bổ sung Infrastructure as Code sau khi triển khai thủ công ổn định.
-- Tiếp tục cải thiện kỹ năng giao tiếp và thuyết trình trong các buổi trao đổi kỹ thuật.
+- Thực hiện failure injection có kiểm soát để xác nhận ASG replacement và RDS failover bằng bằng chứng thực tế.
+- Bổ sung CI/CD tự động build image, chạy test, Terraform plan và deploy theo môi trường.
+- Tối ưu chi phí NAT Gateway và RDS Multi-AZ cho các môi trường không yêu cầu HA đầy đủ.
+- Tiếp tục rèn khả năng thuyết trình ngắn gọn, tập trung vào business value và kết quả đo được.
 
 ### Mục tiêu phát triển cá nhân
 
-Sau chương trình, tôi muốn có khả năng triển khai một workload cloud nhỏ theo đầy đủ vòng đời: phân tích yêu cầu, thiết kế kiến trúc, triển khai, xác thực, monitoring, xử lý lỗi, kiểm soát chi phí và dọn dẹp tài nguyên.
+Sau chương trình, em muốn tiếp tục phát triển theo hướng Cloud/DevOps và Software Engineering, có khả năng xây dựng một workload từ yêu cầu sản phẩm, thiết kế, IaC, triển khai, observability, bảo mật, xử lý sự cố đến kiểm soát chi phí.

@@ -15,7 +15,7 @@ pre: " <b> 1.4. </b> "
 | Workday | Task | Start Date | Completion Date | Reference Material |
 |---:|---|---|---|---|
 | 1 | Defined the users, problem, success criteria, and project limitations in the QuickBite proposal. | 22/06/2026 | 24/06/2026 | [AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html) |
-| 2 | Designed the VPC, EC2, and private Single-AZ RDS PostgreSQL setup for the demo budget. | 22/06/2026 | 25/06/2026 | [Amazon VPC User Guide](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) |
+| 2 | Designed the VPC, EC2, and private RDS PostgreSQL, initially Single-AZ for cost comparison before the Multi-AZ upgrade. | 22/06/2026 | 25/06/2026 | [Amazon VPC User Guide](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) |
 | 3 | Designed the React frontend on S3 and CloudFront and kept API Gateway out because the backend runs directly on EC2. | 23/06/2026 | 25/06/2026 | [CloudFront with S3](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistS3AndCustomOrigins.html) |
 | 4 | Designed the quickbite-menu-images-<env> bucket and /uploads/image endpoint for menu images. | 24/06/2026 | 26/06/2026 | [Amazon S3 User Guide](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html) |
 | 5 | Added CloudWatch Logs, a CPU Alarm, SNS email, an IAM Role, and AWS Budgets to the operational design. | 25/06/2026 | 27/06/2026 | [Amazon CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html) |
@@ -27,7 +27,7 @@ pre: " <b> 1.4. </b> "
 * Designed an AWS architecture aligned with the current application:
   * React static website on S3 and CloudFront.
   * Dockerized FastAPI on EC2.
-  * PostgreSQL on private Single-AZ RDS.
+  * PostgreSQL on private RDS; the initial plan was Single-AZ.
   * Menu images in S3.
   * Logs and alarms in CloudWatch.
 * Understood how to restrict RDS connectivity so that only the EC2 Security Group can access port 5432.

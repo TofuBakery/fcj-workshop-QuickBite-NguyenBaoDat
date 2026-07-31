@@ -6,7 +6,7 @@ chapter: false
 pre: " <b> 4. </b> "
 includeInReport: false
 ---
-Trong thời gian thực tập, tôi đã tham gia ba sự kiện trực tiếp liên quan đến AWS, điện toán đám mây, trí tuệ nhân tạo, bảo mật và phát triển sản phẩm.
+Trong thời gian thực tập, em đã tham gia ba sự kiện trực tiếp liên quan đến AWS, điện toán đám mây, trí tuệ nhân tạo, bảo mật và phát triển sản phẩm.
 
 ### [Event 1](4.1-Event1/)
 &emsp;**Tên sự kiện:** First Cloud Journey Community Day - Technical Sharing Sessions  

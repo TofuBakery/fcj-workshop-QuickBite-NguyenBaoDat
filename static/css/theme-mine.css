@@ -177,3 +177,50 @@ pre {
   border: 1px solid #dddddd !important;
   box-shadow: none !important;
 }
+
+/* Final report code-style normalization: technical text uses the report font without badges or colored boxes. */
+code,
+pre,
+kbd,
+samp,
+.hljs,
+.hljs *,
+.highlight,
+.highlight *,
+.chroma,
+.chroma * {
+  font-family: Arial, Helvetica, sans-serif !important;
+  color: inherit !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+pre,
+#body-inner pre,
+.tabs-wrapper pre,
+.highlight pre {
+  padding: 0 !important;
+  margin: 1rem 0 !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+}
+
+:not(pre) > code,
+p code,
+li code,
+td code,
+th code {
+  font-size: inherit !important;
+  font-weight: 700 !important;
+  padding: 0 !important;
+}
+
+.copy-to-clipboard,
+pre .copy-to-clipboard,
+code + .copy-to-clipboard {
+  display: none !important;
+}

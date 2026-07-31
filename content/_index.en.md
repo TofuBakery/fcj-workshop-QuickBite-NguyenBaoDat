@@ -1,6 +1,6 @@
 ---
 title: "FCAJ Report - QuickBite"
-date: 2026-07-30
+date: 2026-07-31
 weight: 1
 chapter: false
 pre: "<b></b>"
@@ -8,9 +8,6 @@ pre: "<b></b>"
 # FCAJ Internship / Workshop Report
 ## Project: QuickBite - AWS-based canteen ordering and operations platform
 
-{{% notice info %}}
-This revision is grounded in **QuickBite-final-v3**, the QuickBite repository, and the AWS deployment guides included in the source. It separates **available in source/local**, **prepared for AWS deployment**, and **completed only after real URLs, logs, or screenshots are collected**.
-{{% /notice %}}
 
 ### Student information
 
@@ -25,7 +22,7 @@ This revision is grounded in **QuickBite-final-v3**, the QuickBite repository, a
 | FCAJ class / cohort | **AWS062026** |
 | Internship Company | **Amazon Web Services Viet Nam Company Limited** |
 | Internship position | **Workforce Bootcamp - First Cloud AI Journey** |
-| Worklog period | **01/6/2026 - 15/8/2026** |
+| Worklog period | **04/06/2026 - 31/07/2026** |
 
 {{< report-image src="images/quickbite-cover.jpg" alt="QuickBite report cover" >}}
 
@@ -38,12 +35,13 @@ This revision is grounded in **QuickBite-final-v3**, the QuickBite repository, a
 5. [Workshop - QuickBite on AWS](5-Workshop/)
 6. [Self-evaluation](6-Self-evaluation/)
 7. [Sharing and Feedback](7-Feedback/)
-### Technical scope presented honestly
 
-- <span class="status-done">Local baseline:</span> React/TypeScript/Vite, FastAPI, PostgreSQL, Docker Compose, Mailpit, JWT/RBAC, role flow, COD/mock e-wallet, tracking, dashboards, CSV reports, audit logs, Alembic, and 17 test functions.
-- <span class="status-done">Deployment assets:</span> Dockerfiles, `docker-compose.aws.yml`, PostgreSQL files, phase-by-phase deployment guide, CloudWatch logging configuration, Lambda + SES sample, and clean-up guide.
-- <span class="status-pending">AWS demo architecture:</span> CloudFront + S3, EC2 Docker FastAPI, private Single-AZ RDS PostgreSQL, S3 images, CloudWatch Logs + CPU Alarm, IAM role, SNS alarm email, Budgets, and Cost Explorer.
-- <span class="status-pending">Optional/Future:</span> Lambda + SES order email, IaC, Auto Scaling, Multi-AZ, WAF, Secrets Manager, and advanced DR.
+### Completed technical scope
+
+- <span class="status-done">Application:</span> React/TypeScript/Vite, FastAPI, PostgreSQL, Docker, JWT/RBAC, customer-admin-kitchen-delivery flow, COD/mock e-wallet, tracking, dashboards, CSV reports, audit logs, Alembic, and automated tests.
+- <span class="status-done">AWS infrastructure:</span> two CloudFront distributions, private S3, ALB, a two-Availability-Zone EC2 Auto Scaling Group, Multi-AZ RDS PostgreSQL, ECR, Secrets Manager, SSM, IAM, CloudWatch, SNS, Budgets, and Cost Explorer.
+- <span class="status-done">Infrastructure as Code:</span> a Terraform bootstrap stack for remote state, locking, and ECR; a modular main stack divided into network, data, and app.
+- <span class="status-done">Evidence:</span> architecture, two EC2 instances, CloudFront, S3, ECR, health check, customer menu, admin dashboard, image upload, CloudWatch alarms, and SNS email.
 
 ### Repository
 

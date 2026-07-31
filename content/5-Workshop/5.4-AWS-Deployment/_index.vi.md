@@ -1,348 +1,90 @@
 ---
 title: "Triển khai AWS"
-date: 2026-07-30
+date: 2026-07-31
 weight: 4
 chapter: false
 pre: " <b> 5.4. </b> "
 ---
-# Triển khai AWS từng bước
+# Triển khai AWS bằng Terraform
 
-**Region:** `ap-southeast-1`  
-**Kiến trúc:** S3 + CloudFront frontend · EC2 Docker/FastAPI backend · private RDS PostgreSQL · S3 menu images · CloudWatch Logs/Alarm.
+## 1. Bootstrap hạ tầng nền
 
-> Không sử dụng API Gateway. Các giá trị dạng `<...>` phải được thay bằng tài nguyên thật.
+Em triển khai bootstrap stack trước để tạo ba tài nguyên nền:
 
-## Phase 0 — Budget, CLI và key pair
+- S3 bucket có versioning và AES-256 encryption cho Terraform remote state;
+- DynamoDB table để tránh hai tiến trình cùng ghi state;
+- ECR repository **quickbite-backend** có scan-on-push.
 
-1. Tạo AWS Budget, ví dụ ngưỡng nhỏ phù hợp demo, và nhập email cảnh báo.
-2. Cấu hình CLI:
+{{< report-image src="images/5-Workshop/evidence/ecr-repository.png" alt="Amazon ECR repository QuickBite" caption="ECR repository quickbite-backend lưu Docker image của FastAPI backend." >}}
 
-```bash
-aws configure
-aws sts get-caller-identity
-aws configure get region
-```
+Sau bootstrap, em lấy các output **state_bucket**, **lock_table** và **ecr_repository_url** để cấu hình main stack.
 
-3. Chọn region `ap-southeast-1`.
-4. Tạo key pair `quickbite-key.pem`.
-5. Linux/macOS:
+## 2. Build và push backend image
 
-```bash
-chmod 400 quickbite-key.pem
-```
+Backend được build từ Dockerfile, gắn tag theo ECR repository URL và push lên ECR. Launch Template không chứa source code; mỗi EC2 đăng nhập ECR bằng IAM role, pull image đã version và chạy cùng một cấu hình.
 
-6. Kiểm tra `.env` và `.pem` không nằm trong Git.
+## 3. Main Terraform stack
 
-**Evidence:** Budget, identity command, region, key pair metadata.
+Main stack kết nối ba module **network**, **data** và **app**. Terraform plan mô tả toàn bộ VPC, subnets, ALB, ASG, RDS, S3, CloudFront, IAM, Secret, log group, alarms và SNS trước khi apply. Lần apply cuối tạo đủ 58 resources.
 
-## Phase 1 — Tạo S3 bucket ảnh món
+### Network module
 
-Tạo:
+- VPC tại ap-southeast-1;
+- hai public subnets cho ALB và NAT Gateway;
+- hai private application subnets cho EC2;
+- hai isolated database subnets cho RDS;
+- Security Group chaining: ALB-SG → App-SG:8000 → DB-SG:5432.
 
-```text
-quickbite-menu-images-<env>
-```
+### Data module
 
-Khuyến nghị:
+- RDS PostgreSQL db.t3.micro, encrypted và Multi-AZ;
+- DB subnet group trên hai isolated subnets;
+- Secrets Manager chứa DATABASE_URL và JWT secret.
 
-- giữ Block Public Access;
-- EC2 IAM role chỉ được thao tác trên `menu/*`;
-- dùng CloudFront URL hoặc policy thiết kế riêng nếu cần public read;
-- không cấp `s3:*` trên `*`.
+### App module
 
-Backend sử dụng:
+- ALB, Target Group và health check **/health**;
+- Launch Template và Auto Scaling Group min 2, desired 2, max 4;
+- target tracking policy với CPU mục tiêu 60%;
+- S3 web và menu-images private;
+- hai CloudFront distributions;
+- IAM role, instance profile, ECR read-only, SSM core và scoped inline policy;
+- CloudWatch log group, CPU alarm và SNS email.
 
-```env
-AWS_REGION=ap-southeast-1
-S3_BUCKET_NAME=quickbite-menu-images-<env>
-MENU_IMAGE_BASE_URL=https://<image-delivery-domain>
-```
+{{< report-image src="images/5-Workshop/evidence/ec2-two-az.png" alt="Hai EC2 QuickBite tại hai Availability Zone" caption="Auto Scaling Group duy trì hai instance t3.micro tại ap-southeast-1a và ap-southeast-1b; cả hai vượt qua 3/3 status checks." >}}
 
-**Evidence:** bucket properties, IAM policy, object dưới `menu/`.
+## 4. S3 và CloudFront
 
-## Phase 2 — Tạo private RDS PostgreSQL
+Terraform tạo ba bucket:
 
-1. Tạo security group `quickbite-rds-sg`, chưa mở inbound.
-2. Tạo RDS:
+- **quickbite-web-a64511** cho frontend;
+- **quickbite-menu-images-a64511** cho ảnh món;
+- **quickbite-tfstate-46a21a** cho remote state.
 
-```text
-Identifier: quickbite-db
-Engine: PostgreSQL
-Class: db.t3.micro
-Storage: 20 GB
-Public access: No
-Availability: Single-AZ for demo
-Database user: quickbite
-```
+{{< report-image src="images/5-Workshop/evidence/s3-buckets.png" alt="Các S3 bucket của QuickBite" caption="Ba S3 bucket cho web, menu images và Terraform state tại ap-southeast-1." >}}
 
-3. Ghi lại endpoint, không chụp password.
+Web và image buckets đều chặn public access. CloudFront Origin Access Control là principal duy nhất được đọc object.
 
-**Quan trọng:** RDS private không thể nạp schema trực tiếp từ laptop. Schema sẽ được nạp từ EC2.
+{{< report-image src="images/5-Workshop/evidence/cloudfront-distributions.png" alt="Hai CloudFront distributions của QuickBite" caption="Hai CloudFront distributions được bật: một distribution cho ALB/API và một distribution cho web + menu images." >}}
 
-**Evidence:** RDS `Available`, connectivity private, class/storage, endpoint.
+## 5. IAM, Secret và quản trị instance
 
-## Phase 3 — EC2, IAM role và security group
+EC2 instance profile được khai báo trong Launch Template. Role chỉ có các quyền cần thiết:
 
-### IAM role
+- đọc đúng secret của ứng dụng;
+- đọc và ghi object trong menu-images bucket;
+- gửi log vào log group QuickBite;
+- pull image từ ECR;
+- kết nối Systems Manager Session Manager.
 
-Tạo `quickbite-ec2-role` với trust entity EC2. Policy cần giới hạn:
+{{< report-image src="images/5-Workshop/evidence/iam-roles.png" alt="IAM roles trong tài khoản AWS" caption="IAM roles và service-linked roles hỗ trợ Auto Scaling, Elastic Load Balancing, RDS và EC2 application instances." >}}
 
-- S3 list/get/put đúng bucket/prefix;
-- CloudWatch Logs create stream/put events đúng log group.
+Em dùng SSM để nạp schema, seed và views vào RDS từ bên trong VPC. Cách này giữ database private và không cần mở port 5432 cho laptop.
 
-### EC2
+## 6. Build frontend
 
-```text
-Name: quickbite-app
-AMI: Ubuntu 24.04
-Instance type: t3.micro
-IAM instance profile: quickbite-ec2-role
-Key pair: quickbite-key
-```
+Sau khi Terraform xuất **api_url** và **frontend_bucket**, em build React với API base là CloudFront API domain, sau đó đồng bộ thư mục dist lên S3 web bucket. SPA fallback trả index.html cho 403/404 để các route như admin, menu và order tracking vẫn hoạt động khi refresh.
 
-### Security group
+## 7. Tệp đính kèm
 
-`quickbite-ec2-sg`:
-
-| Port | Source | Mục đích |
-|---:|---|---|
-| 22 | My IP | SSH |
-| 80 hoặc port demo | theo phương án truy cập | backend/origin |
-| 8000 | chỉ dùng khi test trực tiếp, sau đó siết lại | FastAPI test |
-
-Không mở SSH cho toàn Internet nếu không cần.
-
-**Evidence:** EC2 instance, attached role, SG rules.
-
-## Phase 4 — Nối EC2 đến RDS
-
-Trong `quickbite-rds-sg`, thêm:
-
-```text
-Type: PostgreSQL
-Port: 5432
-Source: quickbite-ec2-sg
-```
-
-Không dùng `0.0.0.0/0`.
-
-**Evidence:** inbound rule theo security group ID.
-
-## Phase 5 — SSH vào EC2 và nạp database
-
-```bash
-ssh -i quickbite-key.pem ubuntu@<ec2-public-ip>
-sudo apt update
-sudo apt install -y docker.io docker-compose-plugin git postgresql-client
-sudo usermod -aG docker ubuntu
-newgrp docker
-git clone https://github.com/edrictrn/quickbite.git
-cd quickbite
-```
-
-Tạo chuỗi kết nối runtime:
-
-```bash
-export DB="postgresql://quickbite:<db-password>@<rds-endpoint>:5432/quickbite"
-```
-
-Nạp dữ liệu từ EC2:
-
-```bash
-psql "$DB" -f backend/sql/schema_postgres.sql
-psql "$DB" -f backend/sql/seed_postgres.sql
-psql "$DB" -f backend/sql/views_postgres.sql
-psql "$DB" -c "\dt"
-```
-
-**Evidence:** terminal `\dt`, sample query và RDS connections.
-
-## Phase 6 — Chạy backend bằng `docker-compose.aws.yml`
-
-Tạo `.env` trên EC2:
-
-```bash
-cat > .env <<'EOF'
-DATABASE_URL=postgresql://quickbite:<db-password>@<rds-endpoint>:5432/quickbite
-SECRET_KEY=<generate-a-long-random-secret>
-CORS_ALLOW_ORIGINS=https://<cloudfront-domain>
-AWS_REGION=ap-southeast-1
-S3_BUCKET_NAME=quickbite-menu-images-<env>
-MENU_IMAGE_BASE_URL=https://<image-delivery-domain>
-SHOW_DEMO_ACCOUNTS=false
-EOF
-chmod 600 .env
-```
-
-Có thể tạo secret:
-
-```bash
-openssl rand -hex 32
-```
-
-Khởi chạy:
-
-```bash
-docker compose -f docker-compose.aws.yml up --build -d
-docker ps
-curl http://localhost:8000/health
-```
-
-`docker-compose.aws.yml` chỉ có backend; không khởi chạy PostgreSQL local.
-
-**Evidence:** `docker ps`, health output, container config không lộ secret.
-
-## Phase 7 — Test backend
-
-```text
-http://<ec2-public-ip>:8000/health
-http://<ec2-public-ip>:8000/docs
-```
-
-Kiểm thử:
-
-- login;
-- GET menu;
-- tạo order;
-- đổi trạng thái theo role;
-- query RDS xác nhận dữ liệu;
-- report endpoints;
-- invalid token/permission cases.
-
-> Port 8000 public chỉ phù hợp kiểm thử ngắn. Kiến trúc production nên dùng ALB + ACM hoặc reverse proxy được bảo vệ.
-
-## Phase 8 — Test upload ảnh
-
-1. đăng nhập admin;
-2. gọi `/uploads/image`;
-3. xác nhận object nằm ở:
-
-```text
-s3://quickbite-menu-images-<env>/menu/<object>
-```
-
-4. kiểm tra frontend hiển thị URL ảnh;
-5. kiểm tra file type/size validation;
-6. thử upload khi role không đủ quyền.
-
-**Evidence:** request, S3 object và ảnh hiển thị.
-
-## Phase 9 — Build frontend và upload S3
-
-Trên máy local:
-
-```bash
-cd frontend
-npm ci
-VITE_API_BASE="" npm run build
-aws s3 sync dist/ s3://quickbite-web-<env> --delete
-```
-
-Tạo CloudFront distribution:
-
-- origin: private S3 web bucket;
-- Origin Access Control;
-- Default root object: `index.html`;
-- custom error 403 → `/index.html` status 200;
-- custom error 404 → `/index.html` status 200.
-
-**Evidence:** distribution domain, OAC, bucket policy và deep-link refresh.
-
-## Phase 10 — API path, CORS và mixed content
-
-CloudFront HTTPS không thể để browser gọi trực tiếp HTTP EC2 mà không gặp mixed content.
-
-Phương án demo:
-
-1. thêm EC2 làm origin thứ hai;
-2. tạo behaviors cho các path backend, ví dụ:
-
-```text
-/auth/*
-/menu/*
-/orders/*
-/payments/*
-/reports/*
-/uploads/*
-/settings/*
-/admin/*
-/kitchen/*
-/delivery/*
-```
-
-3. frontend dùng relative path với `VITE_API_BASE=""`;
-4. backend CORS cho đúng CloudFront domain;
-5. restart backend sau khi sửa `.env`.
-
-Phương án production future: ALB + ACM cho backend HTTPS.
-
-**Evidence:** browser network tab, CORS headers và app không có mixed-content error.
-
-## Phase 11 — CloudWatch Logs và CPU Alarm
-
-`docker-compose.aws.yml` dùng Docker `awslogs`, log group:
-
-```text
-quickbite/backend
-```
-
-Kiểm tra CloudWatch Logs có request/startup/error logs.
-
-Tạo alarm:
-
-```text
-Name: quickbite-cpu-high
-Metric: EC2 CPUUtilization
-Threshold: > 70%
-Period/evaluation: 5 minutes, theo cấu hình demo
-Action: SNS email
-```
-
-SNS ở đây chỉ phục vụ alarm.
-
-Không ghi 5xx alarm là đã có nếu chưa sử dụng ALB hoặc custom metric.
-
-**Evidence:** log events, alarm configuration/state, SNS subscription confirmation.
-
-## Phase 12 — Optional Lambda + SES
-
-Source có tài liệu và code mẫu Lambda/SES, nhưng đây là phần optional/future.
-
-Luồng dự kiến:
-
-```text
-OrderCreated (future event)
-    -> Lambda
-    -> Amazon SES
-```
-
-Local vẫn dùng Mailpit. Chỉ đánh dấu hoàn thành khi có function, trigger, SES identity, log và email thật.
-
-## Phase 13 — Evidence và clean-up
-
-Trước clean-up, thu thập:
-
-- RDS Available và `\dt`;
-- `/health` và `/docs`;
-- frontend CloudFront;
-- order flow end-to-end;
-- S3 menu image;
-- CloudWatch logs;
-- CPU alarm;
-- Budget;
-- CORS/mixed-content test.
-
-Sau đó thực hiện quy trình ở trang Clean-up.
-
-## Các lỗi thường gặp
-
-| Triệu chứng | Nguyên nhân/khắc phục |
-|---|---|
-| `psql` từ laptop timeout | RDS private; chạy từ EC2 |
-| Compose chạy DB local | dùng sai file; chuyển sang `docker-compose.aws.yml` |
-| backend `could not connect to server` | kiểm tra SG 5432, endpoint và `DATABASE_URL` |
-| frontend lỗi CORS | domain CloudFront chưa nằm trong allow list hoặc backend chưa restart |
-| browser chặn mixed content | dùng CloudFront API origin/behavior |
-| refresh route bị 403/404 | cấu hình error response về `/index.html` |
-| ảnh không hiển thị | kiểm tra bucket/prefix, IAM và `MENU_IMAGE_BASE_URL` |
-| CloudWatch không có log | kiểm tra IAM role, region, log group và `awslogs` config |
+- [Mã nguồn QuickBite](../../attachments/quickbite-source.zip)

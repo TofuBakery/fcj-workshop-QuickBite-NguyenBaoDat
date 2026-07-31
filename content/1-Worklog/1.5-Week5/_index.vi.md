@@ -16,7 +16,7 @@ pre: " <b> 1.5. </b> "
 |---:|---|---|---|---|
 | 1 | Đánh giá Operational Excellence: runbook, health check, log, alarm, evidence và cleanup. | 28/06/2026 | 29/06/2026 | [Operational Excellence Pillar](https://docs.aws.amazon.com/wellarchitected/latest/operational-excellence-pillar/welcome.html) |
 | 2 | Đánh giá Security: IAM least privilege, Security Group, RDS private, CORS và quản lý secret bằng .env. | 28/06/2026 | 30/06/2026 | [Security Pillar](https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html) |
-| 3 | Đánh giá Reliability: backup/restore là hướng phát triển; bản demo dùng Single-AZ và chấp nhận thời gian gián đoạn. | 29/06/2026 | 01/07/2026 | [Reliability Pillar](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html) |
+| 3 | Đánh giá Reliability: backup/restore là hướng phát triển; phương án ban đầu dùng Single-AZ; sau review em chuyển sang HA hai Availability Zone. | 29/06/2026 | 01/07/2026 | [Reliability Pillar](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html) |
 | 4 | Đánh giá Performance Efficiency: CloudFront cho static content, cấu hình instance nhỏ và theo dõi CPU. | 30/06/2026 | 02/07/2026 | [Performance Efficiency Pillar](https://docs.aws.amazon.com/wellarchitected/latest/performance-efficiency-pillar/welcome.html) |
 | 5 | Đánh giá Cost Optimization và Sustainability: Budgets, Cost Explorer, right-sizing và xóa tài nguyên sau demo. | 01/07/2026 | 03/07/2026 | [Cost Optimization Pillar](https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html) |
 | 6 | Chỉnh sơ đồ thành hai lớp Deployed/Demo và Target/Future; dùng nét đứt cho ASG, Multi-AZ, WAF và Secrets Manager. | 30/06/2026 | 03/07/2026 | [Sustainability Pillar](https://docs.aws.amazon.com/wellarchitected/latest/sustainability-pillar/welcome.html) |
@@ -32,7 +32,7 @@ pre: " <b> 1.5. </b> "
   * Sustainability.
 * Xác định các biện pháp vận hành cần có cho demo: runbook, health check, log, alarm, checklist kiểm thử và cleanup.
 * Áp dụng các nguyên tắc bảo mật phù hợp với phạm vi hiện tại: IAM Least Privilege, RDS private, Security Group, CORS và không hard-code key.
-* Hiểu giới hạn Reliability của bản demo Single-AZ và ghi rõ Multi-AZ, backup nâng cao và failover là hướng phát triển.
+* Hiểu giới hạn Reliability của phương án Single-AZ và dùng kết quả review để chuyển sang Multi-AZ cùng Auto Scaling.
 * Giải thích được vai trò của CloudFront trong phân phối static content và giảm tải cho origin.
 * Xây dựng kế hoạch kiểm soát chi phí bằng AWS Budgets, Cost Explorer, right-sizing và xóa tài nguyên không sử dụng.
 * Tách sơ đồ thành hai lớp:

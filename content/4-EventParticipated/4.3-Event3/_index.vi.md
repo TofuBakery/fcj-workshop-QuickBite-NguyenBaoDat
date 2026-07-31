@@ -158,27 +158,27 @@ So với quy trình thủ công, AI tạo ra một bản nháp có căn cứ đ�
 
 ## Ứng dụng vào QuickBite và công việc
 
-Sau sự kiện, tôi liên hệ các bài trình bày với QuickBite theo các hướng sau:
+Sau sự kiện, em liên hệ các bài trình bày với QuickBite theo các hướng sau:
 
 - **Giữ phạm vi demo thực tế:** ưu tiên luồng customer → order → kitchen → delivery chạy hoàn chỉnh trên CloudFront, EC2, RDS và S3 thay vì thêm nhiều dịch vụ chưa có bằng chứng.
 - **Agentic ordering trong tương lai:** QuickBite có thể bổ sung một conversational ordering assistant, nhưng agent chỉ nên gọi các API menu, cart, order và payment đã được kiểm soát; không được tự tạo giá hoặc trạng thái đơn hàng.
 - **Xác minh trước khi hành động:** mọi thay đổi giỏ hàng hoặc đơn hàng phải được backend kiểm tra lại theo dữ liệu database, role và state transition.
 - **Kiến trúc mở rộng:** frontend, backend, database và object storage đã được tách thành các thành phần riêng, tạo nền tảng để thêm channel adapter hoặc service bất đồng bộ trong tương lai.
-- **Chi phí:** tiếp tục dùng EC2 `t3.micro`, RDS `db.t3.micro` Single-AZ, S3, CloudFront và CloudWatch cho demo; chỉ thêm Bedrock hoặc AgentCore sau khi có use case rõ và estimate chi phí.
+- **Chi phí và độ tin cậy:** kiến trúc cuối sử dụng hai EC2 **t3.micro**, RDS **db.t3.micro Multi-AZ**, ALB, S3, CloudFront và CloudWatch; em theo dõi Budget/Cost Explorer và chỉ thêm Bedrock hoặc AgentCore khi có use case cùng cost estimate rõ.
 - **Monitoring:** ngoài CPU Alarm, hướng phát triển nên theo dõi tỷ lệ tạo đơn thành công, login failure và latency của order API.
 - **Security:** không commit `.env`, secret, token hoặc private key; EC2 dùng IAM role theo least privilege.
 - **AI hỗ trợ kiến trúc:** có thể dùng AI để tạo bản nháp diagram, checklist và cost estimate, nhưng báo cáo phải được đối chiếu với resource đã deploy thật.
 - **Cách trình bày:** báo cáo QuickBite cần nêu rõ problem, solution, architecture, cost, demo flow, challenges, lessons learned và next steps giống cấu trúc của các đội trình bày tốt tại sự kiện.
 
-Phần OneTeam có liên hệ trực tiếp nhất với QuickBite vì cùng xử lý bài toán đặt món. Tuy nhiên, bài học tôi nhận được không phải là cần thêm chatbot ngay lập tức, mà là phải làm chắc API, business rule, xác minh giỏ hàng và luồng trạng thái trước. Khi nền tảng giao dịch chưa đáng tin cậy, việc thêm AI chỉ làm lỗi trở nên khó kiểm soát hơn.
+Phần OneTeam có liên hệ trực tiếp nhất với QuickBite vì cùng xử lý bài toán đặt món. Tuy nhiên, bài học em nhận được không phải là cần thêm chatbot ngay lập tức, mà là phải làm chắc API, business rule, xác minh giỏ hàng và luồng trạng thái trước. Khi nền tảng giao dịch chưa đáng tin cậy, việc thêm AI chỉ làm lỗi trở nên khó kiểm soát hơn.
 
 ## Trải nghiệm sự kiện
 
 Sự kiện thứ ba mang màu sắc dự án và hackathon rõ hơn hai buổi trước. Các nhóm không chỉ nói về một dịch vụ AWS riêng lẻ mà trình bày toàn bộ hành trình: vấn đề, ý tưởng, kiến trúc, chi phí, demo, lỗi gặp phải và bài học sau quá trình xây dựng.
 
-Tôi ấn tượng với cách các nhóm thẳng thắn nói về những phần chưa hoàn hảo. SignalScout có cả phương án kiến trúc tiết kiệm hơn; Team 3KA kể về lỗi code, thiếu kinh nghiệm và việc vô tình push file môi trường; OneTeam nhấn mạnh rằng AI ordering là một bài toán hệ thống thật chứ không phải demo chatbot đơn giản; Plan V cho thấy AI hữu ích nhất khi tạo bản nháp để con người kiểm tra và cải tiến.
+Em ấn tượng với cách các nhóm thẳng thắn nói về những phần chưa hoàn hảo. SignalScout có cả phương án kiến trúc tiết kiệm hơn; Team 3KA kể về lỗi code, thiếu kinh nghiệm và việc vô tình push file môi trường; OneTeam nhấn mạnh rằng AI ordering là một bài toán hệ thống thật chứ không phải demo chatbot đơn giản; Plan V cho thấy AI hữu ích nhất khi tạo bản nháp để con người kiểm tra và cải tiến.
 
-Không khí trực tiếp giúp tôi quan sát cách diễn giả trình bày live demo, giải thích trade-off và tương tác với người tham dự. Đây cũng là một bài học cho phần Workshop QuickBite: thay vì liệt kê quá nhiều dịch vụ, tôi cần dẫn người xem theo một câu chuyện rõ ràng từ khách hàng đặt món đến dữ liệu được lưu, bếp xử lý và đơn được giao.
+Không khí trực tiếp giúp em quan sát cách diễn giả trình bày live demo, giải thích trade-off và tương tác với người tham dự. Đây cũng là một bài học cho phần Workshop QuickBite: thay vì liệt kê quá nhiều dịch vụ, em cần dẫn người xem theo một câu chuyện rõ ràng từ khách hàng đặt món đến dữ liệu được lưu, bếp xử lý và đơn được giao.
 
 ## Bài học rút ra
 

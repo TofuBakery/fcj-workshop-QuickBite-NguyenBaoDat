@@ -5,7 +5,7 @@ weight: 1
 chapter: false
 pre: " <b> 1. </b> "
 ---
-Trong quá trình tham gia First Cloud AI Journey, tôi kết hợp việc học AWS với việc hoàn thiện QuickBite. Tôi bắt đầu bằng cách đọc lại yêu cầu của chương trình và khảo sát source code, sau đó lần lượt xử lý môi trường local, bảo mật IAM, thiết kế kiến trúc, chuẩn bị EC2 và RDS, triển khai frontend qua S3 và CloudFront, rồi bổ sung monitoring và tài liệu kiểm thử.
+Trong quá trình tham gia First Cloud AI Journey, em kết hợp việc học AWS với việc hoàn thiện QuickBite. Em bắt đầu bằng cách đọc lại yêu cầu của chương trình và khảo sát source code, sau đó lần lượt xử lý môi trường local, bảo mật IAM, thiết kế kiến trúc, chuẩn bị EC2 và RDS, triển khai frontend qua S3 và CloudFront, rồi bổ sung monitoring và tài liệu kiểm thử.
 
 Nội dung công việc được chia theo từng tuần như sau:
 

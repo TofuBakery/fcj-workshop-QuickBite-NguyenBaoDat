@@ -67,20 +67,22 @@ Nhiều site/Region cùng phục vụ traffic. Nếu một nơi gặp sự cố,
 
 ## Áp dụng cho QuickBite
 
-### Kiến trúc demo hiện tại
+### Kiến trúc hiện tại
 
-QuickBite demo được thiết kế tiết kiệm:
+QuickBite đã được nâng từ phương án Single-AZ ban đầu lên kiến trúc High Availability trong một Region:
 
-- một EC2 t3.micro;
-- một RDS PostgreSQL db.t3.micro, **Single-AZ**;
-- S3 cho frontend và ảnh;
-- CloudFront;
-- CloudWatch Logs/Alarm;
-- Budgets và Cost Explorer.
+- hai EC2 t3.micro trong Auto Scaling Group tại hai Availability Zone;
+- Application Load Balancer;
+- RDS PostgreSQL db.t3.micro Multi-AZ;
+- S3 private cho frontend, ảnh và Terraform state;
+- hai CloudFront distributions;
+- ECR, Secrets Manager và Systems Manager;
+- CloudWatch Logs/Alarm, SNS, Budgets và Cost Explorer;
+- Terraform Infrastructure as Code.
 
-Kiến trúc này có single points of failure. Nếu EC2 hoặc RDS gặp sự cố, dịch vụ có thể gián đoạn. Demo cũng chưa triển khai AWS Backup, cross-region snapshot hay Multi-AZ.
+Kiến trúc này giảm single point of failure trong Region, nhưng chưa phải Disaster Recovery đa Region. Project chưa triển khai cross-region snapshot, secondary Region hoặc Active/Active.
 
-Việc ghi rõ giới hạn này là quan trọng. Một sơ đồ đẹp không thay thế cho khả năng phục hồi thật.
+Việc ghi rõ giới hạn này là quan trọng. High Availability và Disaster Recovery liên quan nhưng không đồng nghĩa.
 
 ### Hướng DR phù hợp
 
@@ -95,7 +97,7 @@ Với quy mô QuickBite, **Backup and Restore** là bước đầu hợp lý:
 7. test ứng dụng kết nối database vừa restore;
 8. đo thời gian thực tế để kiểm tra RTO.
 
-Nếu QuickBite trở thành sản phẩm thật, có thể nâng RDS lên Multi-AZ và thiết kế hạ tầng bằng IaC. Multi-AZ giúp failover trong Region nhưng không thay thế mọi chiến lược DR.
+QuickBite hiện đã dùng RDS Multi-AZ và Terraform. Bước tiếp theo phù hợp là bổ sung backup policy, restore drill và bản sao ngoài Region. Multi-AZ giúp failover trong Region nhưng không thay thế chiến lược DR.
 
 ## Cleanup demo không phải Disaster Recovery
 
@@ -141,7 +143,7 @@ Disaster Recovery không phải chỉ dành cho ngân hàng hoặc hệ thống 
 - runbook có được test không;
 - chi phí của mức bảo vệ đó có phù hợp không.
 
-Với QuickBite, demo ưu tiên chi phí nên dùng Single-AZ và chưa có DR đầy đủ. Báo cáo trung thực ghi đó là giới hạn hiện tại, đồng thời đề xuất Backup and Restore, RDS snapshots, S3 Versioning, restore test và Multi-AZ ở giai đoạn production.
+Với QuickBite, kiến trúc hiện tại đã có hai Availability Zone, Auto Scaling và RDS Multi-AZ, nhưng chưa có DR đa Region. Bước phát triển tiếp theo là Backup and Restore có kiểm thử, RDS snapshots, S3 Versioning và restore drill định kỳ.
 
 ## Nguồn tham khảo
 

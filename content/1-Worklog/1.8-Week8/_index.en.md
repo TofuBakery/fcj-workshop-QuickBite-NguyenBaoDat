@@ -1,38 +1,37 @@
 ---
 title: "Week 8 Worklog"
-date: 2026-07-30
+date: 2026-07-31
 weight: 8
 chapter: false
 pre: " <b> 1.8. </b> "
 ---
 ### Week 8 Objectives:
 
-* Validate the end-to-end flow and the evidence required for AWS deployment.
-* Complete CloudWatch, event reports, blogs, and references.
+* Complete the two-Availability-Zone QuickBite infrastructure with Terraform.
+* Deploy the application, validate the end-to-end flow, and collect AWS evidence.
 
 ### Tasks carried out during the week:
 
 | Workday | Task | Start Date | Completion Date | Reference Material |
 |---:|---|---|---|---|
-| 1 | Reviewed the EC2 and RDS checklist: instance, IAM Role, Security Group, Docker, /health, /docs, port 5432 connectivity, and database tables. | 23/07/2026 | 26/07/2026 | [Amazon EC2 troubleshooting](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-troubleshoot.html) |
-| 2 | Tested the flow in which the customer creates an order, the admin confirms it, the kitchen prepares it, delivery completes it, and the customer tracks the status. | 24/07/2026 | 28/07/2026 | [QuickBite E2E flow](https://github.com/edrictrn/quickbite/tree/6c79b99049949e8cd28ae196c9792f4abff2e3db) |
-| 3 | Attended First Cloud Journey AI and took notes on Agentic AI, cost estimation, hackathons, and architecture presentation. | 25/07/2026 | 25/07/2026 | Event 3 slides and notes |
-| 4 | Checked the quickbite/backend log group, Docker awslogs, CPU Alarm, and SNS email notification flow. | 27/07/2026 | 29/07/2026 | [CloudWatch alarms](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html) |
-| 5 | Edited the three AWS blogs, completed the three event reports, and added reference materials to each section. | 28/07/2026 | 31/07/2026 | [AWS Architecture Blog](https://aws.amazon.com/blogs/architecture/) |
-| 6 | Reviewed bilingual content, links, code snippets, attachments, evidence images, and the cleanup order before closing the report. | 29/07/2026 | 31/07/2026 | [QuickBite repository](https://github.com/edrictrn/quickbite/tree/6c79b99049949e8cd28ae196c9792f4abff2e3db) |
+| 1 | Completed the Terraform bootstrap for S3 remote state, DynamoDB locking, and the ECR repository. | 23/07/2026 | 26/07/2026 | Terraform bootstrap source |
+| 2 | Completed the network, data, and app modules for two-AZ VPC, ALB, ASG, Multi-AZ RDS, S3, CloudFront, IAM, and monitoring. | 24/07/2026 | 29/07/2026 | Terraform main stack |
+| 3 | Attended First Cloud Journey AI and recorded lessons on Agentic AI, cost estimation, hackathons, and architecture presentation. | 25/07/2026 | 25/07/2026 | Event 3 notes |
+| 4 | Built and pushed the backend image, applied 58 resources, and loaded schema/seed/views into RDS through SSM. | 27/07/2026 | 31/07/2026 | QuickBite source and AWS Console evidence |
+| 5 | Built the frontend with the CloudFront API URL, synchronized it to S3, and tested menu, admin dashboard, image upload, and health check. | 28/07/2026 | 31/07/2026 | AWS Console and QuickBite demo |
+| 6 | Verified two EC2 instances across two AZs, CloudWatch alarms, SNS email, and completed Proposal, Workshop, and evidence images. | 29/07/2026 | 31/07/2026 | AWS Console evidence |
 
 ### Week 8 Achievements:
 
-* Completed the verification checklist for the main QuickBite architecture components:
-  * EC2, IAM Role, and Security Group.
-  * Private RDS PostgreSQL and TCP 5432 connectivity.
-  * S3 web bucket, S3 menu-image bucket, and CloudFront.
-  * CloudWatch Logs, CPU Alarm, and SNS email.
-* Rechecked the end-to-end business flow from customer order creation through admin, kitchen, and delivery processing.
-* Defined the evidence to collect during a real deployment: `/health`, Swagger, RDS tables, S3 objects, CloudFront URL, log group, and alarm.
-* Completed the backend monitoring design with Docker awslogs and CloudWatch Alarm.
-* Edited three AWS blog posts on Event-Driven Architecture, Disaster Recovery, and Least Privilege.
-* Completed three bilingual event reports with the correct event photographs.
-* Reviewed the menu order, bilingual links, code snippets, Docker/SQL/script attachments, and Workshop content.
-* Prepared the cleanup order for CloudFront, S3, EC2, RDS, log groups, alarms, SNS, and IAM resources.
-* Learned from Event 3 about MVP scope, cost estimation, teamwork, rehearsal, and honest architecture communication.
+* Completed Terraform validate and plan; the main apply created 58 resources.
+* Created versioned remote state, DynamoDB locking, and an ECR repository.
+* Deployed a two-Availability-Zone VPC with public, private application, and isolated database subnets.
+* Deployed an ALB and Auto Scaling Group with min 2, desired 2, max 4.
+* Verified two t3.micro EC2 instances in ap-southeast-1a and ap-southeast-1b.
+* Deployed Multi-AZ RDS PostgreSQL and stored the database secret in Secrets Manager.
+* Deployed two CloudFront distributions, a private web bucket, and a private menu-images bucket.
+* Verified that the API health response returned status ok, service quickbite-api, version 1.4.0.
+* Tested the storefront, admin dashboard, image upload, and RDS-backed data flow.
+* Verified the CloudWatch CPU alarm, target-tracking alarms, and SNS email.
+* Completed the deployment, testing, and AWS evidence documentation for the full system.
+* Completed the Proposal and Workshop based on the actual deployed infrastructure.

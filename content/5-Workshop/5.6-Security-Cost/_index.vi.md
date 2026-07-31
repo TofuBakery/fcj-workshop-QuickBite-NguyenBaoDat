@@ -1,157 +1,109 @@
 ---
-title: "Bảo mật và chi phí"
-date: 2026-07-30
+title: "Bảo mật và tối ưu chi phí"
+date: 2026-07-31
 weight: 6
 chapter: false
 pre: " <b> 5.6. </b> "
 ---
 # Bảo mật và tối ưu chi phí
 
-## 1. Shared Responsibility
+## 1. Identity và credential
 
-AWS bảo vệ hạ tầng cloud; người triển khai QuickBite vẫn chịu trách nhiệm về IAM, network, dữ liệu, secret, cấu hình hệ điều hành/container và ứng dụng.
+Em không dùng access key của root sau khi phát hiện rủi ro trong giai đoạn đầu. AWS CLI sử dụng IAM user riêng; EC2 không lưu access key mà nhận quyền qua instance profile.
 
-## 2. IAM Least Privilege
+EC2 role có các quyền cần thiết cho:
 
-EC2 dùng `quickbite-ec2-role`, không dùng access key dài hạn.
+- Secrets Manager GetSecretValue trên đúng application secret;
+- S3 GetObject và PutObject trên menu-images bucket;
+- CloudWatch Logs CreateLogStream, PutLogEvents và DescribeLogStreams;
+- ECR read-only;
+- Systems Manager Managed Instance Core.
 
-Quyền dự kiến:
+## 2. Network isolation
 
-- `s3:ListBucket` đúng bucket và prefix `menu/*`;
-- `s3:GetObject`/`s3:PutObject` trên `menu/*`;
-- `logs:CreateLogStream`, `logs:DescribeLogStreams`, `logs:PutLogEvents` trên log group `quickbite/backend`.
+| Lớp | Kiểm soát |
+|---|---|
+| CloudFront | Entry point HTTPS cho người dùng |
+| ALB | Chỉ chuyển request đến target group TCP 8000 |
+| EC2 | Nằm trong private subnets |
+| RDS | Nằm trong isolated database subnets |
+| Security Groups | ALB-SG → App-SG:8000 → DB-SG:5432 |
+| SSM | Quản trị instance không cần public SSH |
+| NAT Gateway | Cho outbound từ private subnet |
 
-Không cấp:
+## 3. S3 và CloudFront OAC
 
-```json
-{
-  "Action": "*",
-  "Resource": "*"
-}
-```
-
-trừ trường hợp test tạm thời có kiểm soát, và phải gỡ ngay sau đó.
-
-## 3. Network security
-
-- RDS `Public access = No`;
-- RDS SG chỉ nhận PostgreSQL 5432 từ EC2 SG;
-- SSH 22 chỉ từ IP quản trị;
-- port 8000 chỉ mở tạm khi test trực tiếp;
-- bucket frontend private và dùng OAC;
-- CORS chỉ cho domain CloudFront thật;
-- backend production future nên dùng ALB/ACM để có HTTPS origin.
+Web bucket và menu-images bucket đều bật Block Public Access. Bucket policy chỉ cho phép CloudFront service principal đọc object khi SourceArn khớp đúng web distribution. Backend upload ảnh bằng EC2 IAM role, không dùng public ACL.
 
 ## 4. Secret management
 
-### Demo hiện tại
+DATABASE_URL và JWT secret được lưu trong Secrets Manager. Tất cả EC2 đọc cùng một secret, giúp token hợp lệ nhất quán giữa nhiều instance. Secret không được hard-code trong Launch Template, user data, image hoặc Terraform variables dạng plain text.
 
-Secret được đặt trong `.env` trên EC2:
+## 5. Container và ECR
 
-```text
-DATABASE_URL
-SECRET_KEY
-database password
-```
+Backend image nằm trong ECR private repository. Scan-on-push được bật ở bootstrap. Instance pull image bằng ECR read-only managed policy. Việc dùng cùng một image cho mọi instance giúp giảm configuration drift.
 
-Biện pháp tối thiểu:
+## 6. Logging và alarm
 
-```bash
-chmod 600 .env
-openssl rand -hex 32
-```
+Container stdout/stderr được gửi vào CloudWatch log group do Terraform quản lý. Log group có retention hữu hạn để tránh giữ log vô thời hạn. CloudWatch theo dõi CPU của Auto Scaling Group và gửi trạng thái Alarm/OK qua SNS.
 
-- `.env` nằm trong `.gitignore`;
-- screenshot không lộ password;
-- không lưu `.pem` trong repository;
-- không dùng AWS access key trong `.env`.
+## 7. Kiểm soát chi phí
 
-### Future
+Kiến trúc HA có chi phí cao hơn baseline cũ vì gồm:
 
-- AWS Systems Manager Parameter Store hoặc Secrets Manager;
-- rotation;
-- audit access;
-- tách secret theo dev/staging/prod.
+- hai EC2 luôn hoạt động;
+- RDS Multi-AZ;
+- Application Load Balancer;
+- hai NAT Gateway;
+- hai CloudFront distributions;
+- CloudWatch Logs và metrics.
 
-Không vẽ Secrets Manager như thành phần đã triển khai nếu chưa có bằng chứng.
+Em dùng AWS Budgets và Cost Explorer để theo dõi chi phí. Terraform cũng cung cấp các biến **multi_az**, **enable_nat** và **enable_interface_endpoints** để có thể điều chỉnh giữa reliability và cost ở môi trường khác.
 
-## 5. Application security
+## 8. Well-Architected review
 
-- password hashing;
-- JWT authentication;
-- role checks;
-- rate limiting;
-- file type/size validation;
-- lookup token;
-- server-side price calculation;
-- Decimal/NUMERIC cho tiền;
-- audit/operation logs;
-- ẩn tài khoản demo trong production.
+### Operational Excellence
 
-Các cải tiến còn lại:
+- Infrastructure as Code;
+- remote state và locking;
+- module hóa;
+- health check;
+- CloudWatch, SNS và tài liệu vận hành.
 
-- state machine chặt cho order transition;
-- status history/email nhất quán sau mock payment;
-- CSRF/cookie strategy nếu chuyển auth mode;
-- dependency/image scanning;
-- HTTPS origin production.
+### Security
 
-## 6. Logging and audit
+- private S3 + OAC;
+- private EC2 và isolated RDS;
+- IAM role;
+- Secrets Manager;
+- SSM;
+- không dùng root key.
 
-- container log → `quickbite/backend`;
-- không log password, token hoặc full connection string;
-- đặt retention phù hợp;
-- dùng operation logs cho hành động quản trị;
-- CloudTrail có thể dùng để audit AWS API, nhưng không cần trình bày như phần app log.
+### Reliability
 
-## 7. Cost Optimization
+- hai Availability Zone;
+- ALB;
+- ASG min 2;
+- RDS Multi-AZ;
+- target tracking và health checks.
 
-### Right-sizing demo
+### Performance Efficiency
 
-| Resource | Kích thước |
-|---|---|
-| EC2 | t3.micro |
-| RDS | db.t3.micro, Single-AZ, 20 GB |
-| S3 | theo dung lượng thực |
-| CloudFront | pay as used |
-| CloudWatch | kiểm soát log ingestion/retention |
+- CloudFront cache;
+- ALB distribution;
+- Auto Scaling;
+- t3.micro phù hợp demo.
 
-### Controls
+### Cost Optimization
 
-1. tạo Budget trước deployment;
-2. tag resource theo project/environment/owner;
-3. theo dõi Cost Explorer;
-4. giữ log retention vừa đủ;
-5. không tạo NAT Gateway/ALB/ASG nếu demo không cần;
-6. xóa resource ngay sau khi thu thập evidence;
-7. hôm sau kiểm tra Cost Explorer/Billing;
-8. không giữ snapshot nếu dữ liệu demo hoàn toàn không cần thiết.
+- Budget;
+- Cost Explorer;
+- Terraform destroy;
+- biến bật/tắt NAT, endpoints và Multi-AZ.
 
-## 8. Reliability versus cost
+### Sustainability
 
-Single-AZ RDS và một EC2 giảm chi phí nhưng không high availability. Báo cáo ghi rõ trade-off:
-
-- **demo:** low cost, chấp nhận gián đoạn;
-- **production:** Multi-AZ, ALB, Auto Scaling, backup/restore, secrets management và IaC.
-
-## 9. Sustainability
-
-- dùng managed service phù hợp;
-- right-size;
-- xóa môi trường không sử dụng;
-- tránh giữ log/file không cần;
-- ưu tiên kiến trúc đủ dùng thay vì over-provisioning.
-
-## 10. Checklist
-
-- [ ] MFA;
-- [ ] IAM role scoped;
-- [ ] RDS private;
-- [ ] SSH My IP;
-- [ ] `.env` không commit;
-- [ ] không có secret trong screenshot;
-- [ ] CloudWatch log retention;
-- [ ] Budget và email alert;
-- [ ] tag;
-- [ ] cleanup plan;
-- [ ] Cost Explorer review.
+- managed services;
+- capacity theo Auto Scaling;
+- log retention;
+- môi trường có vòng đời rõ ràng.

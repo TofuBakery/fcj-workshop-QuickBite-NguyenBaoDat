@@ -67,20 +67,22 @@ This offers a very low RTO but is the most expensive and complex option. It is n
 
 ## Applying DR to QuickBite
 
-### Current demo architecture
+### Current architecture
 
-The QuickBite demo is intentionally cost-conscious:
+QuickBite was upgraded from the initial Single-AZ plan to an in-Region high-availability architecture:
 
-- one EC2 t3.micro;
-- one **Single-AZ** RDS PostgreSQL db.t3.micro;
-- S3 for the frontend and images;
-- CloudFront;
-- CloudWatch Logs/Alarm;
-- Budgets and Cost Explorer.
+- two t3.micro EC2 instances in an Auto Scaling Group across two Availability Zones;
+- an Application Load Balancer;
+- Multi-AZ RDS PostgreSQL db.t3.micro;
+- private S3 for the frontend, images, and Terraform state;
+- two CloudFront distributions;
+- ECR, Secrets Manager, and Systems Manager;
+- CloudWatch Logs/Alarms, SNS, Budgets, and Cost Explorer;
+- Terraform Infrastructure as Code.
 
-This architecture has single points of failure. If EC2 or RDS fails, the service may be interrupted. The demo also does not deploy AWS Backup, cross-region snapshots, or Multi-AZ.
+This reduces in-Region single points of failure but is not multi-Region Disaster Recovery. The project does not deploy cross-region snapshots, a secondary Region, or Active/Active.
 
-It is important to state these limitations. A polished diagram is not the same as demonstrated recoverability.
+It is important to state this boundary. High Availability and Disaster Recovery are related but not identical.
 
 ### Appropriate first DR step
 
@@ -95,7 +97,7 @@ For QuickBite's scale, **Backup and Restore** is a sensible starting point:
 7. test the application against the restored database;
 8. measure actual restore time against the RTO.
 
-If QuickBite becomes a real product, RDS Multi-AZ and Infrastructure as Code can be added. Multi-AZ improves in-Region failover but does not replace every DR strategy.
+QuickBite now uses Multi-AZ RDS and Terraform. The appropriate next step is a backup policy, restore drills, and an off-Region copy. Multi-AZ improves in-Region failover but does not replace a DR strategy.
 
 ## Demo cleanup is not Disaster Recovery
 
@@ -139,7 +141,7 @@ Disaster Recovery is not only for banks or very large systems. Even a small proj
 - whether the runbook has been tested;
 - whether the protection level fits the budget.
 
-The QuickBite demo prioritizes cost, so it uses Single-AZ and does not claim complete DR. The report clearly states this limitation and proposes Backup and Restore, RDS snapshots, S3 Versioning, restore testing, and Multi-AZ for production.
+QuickBite now has two Availability Zones, Auto Scaling, and Multi-AZ RDS, but it does not yet have multi-Region DR. The next step is verified Backup and Restore, RDS snapshots, S3 Versioning, and periodic restore drills.
 
 ## References
 

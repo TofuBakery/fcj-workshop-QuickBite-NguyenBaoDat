@@ -1,157 +1,109 @@
 ---
-title: "Security and Cost"
-date: 2026-07-30
+title: "Security and cost optimization"
+date: 2026-07-31
 weight: 6
 chapter: false
 pre: " <b> 5.6. </b> "
 ---
 # Security and cost optimization
 
-## 1. Shared Responsibility
+## 1. Identity and credentials
 
-AWS protects cloud infrastructure; the QuickBite implementer remains responsible for IAM, networking, data, secrets, operating system/container configuration, and the application.
+I stopped using root access keys after identifying the risk in the early deployment stage. AWS CLI uses a dedicated IAM user, while EC2 stores no access key and receives permissions through an instance profile.
 
-## 2. IAM Least Privilege
+The EC2 role includes the required permissions for:
 
-EC2 uses `quickbite-ec2-role`, not long-term access keys.
+- Secrets Manager GetSecretValue on the application secret;
+- S3 GetObject and PutObject on the menu-images bucket;
+- CloudWatch Logs CreateLogStream, PutLogEvents, and DescribeLogStreams;
+- ECR read-only access;
+- Systems Manager Managed Instance Core.
 
-Expected permissions:
+## 2. Network isolation
 
-- `s3:ListBucket` for the exact bucket and `menu/*` prefix;
-- `s3:GetObject`/`s3:PutObject` on `menu/*`;
-- `logs:CreateLogStream`, `logs:DescribeLogStreams`, and `logs:PutLogEvents` on `quickbite/backend`.
+| Layer | Control |
+|---|---|
+| CloudFront | User-facing HTTPS entry point |
+| ALB | Forwards requests only to the target group on TCP 8000 |
+| EC2 | Runs in private subnets |
+| RDS | Runs in isolated database subnets |
+| Security Groups | ALB-SG → App-SG:8000 → DB-SG:5432 |
+| SSM | Instance management without public SSH |
+| NAT Gateway | Outbound access from private subnets |
 
-Do not grant:
+## 3. S3 and CloudFront OAC
 
-```json
-{
-  "Action": "*",
-  "Resource": "*"
-}
-```
-
-except in a controlled temporary test, and remove it immediately afterward.
-
-## 3. Network security
-
-- RDS `Public access = No`;
-- RDS SG accepts PostgreSQL 5432 only from the EC2 SG;
-- SSH 22 is restricted to the administrator IP;
-- port 8000 is opened only temporarily for direct testing;
-- the frontend bucket is private and uses OAC;
-- CORS allows only the real CloudFront domain;
-- a future production backend should use ALB/ACM for an HTTPS origin.
+The web and menu-images buckets both block public access. Their policies allow the CloudFront service principal to read objects only when SourceArn matches the web distribution. The backend uploads images through its EC2 IAM role and does not use public ACLs.
 
 ## 4. Secret management
 
-### Current demo
+DATABASE_URL and the JWT secret are stored in Secrets Manager. All EC2 instances read the same secret, keeping tokens consistent across instances. The secret is not hard-coded in the Launch Template, user data, image, or plain Terraform variables.
 
-Secrets are stored in `.env` on EC2:
+## 5. Containers and ECR
 
-```text
-DATABASE_URL
-SECRET_KEY
-database password
-```
+The backend image is stored in a private ECR repository with scan-on-push enabled. Instances pull the image through the ECR read-only managed policy. Running the same image on every instance reduces configuration drift.
 
-Minimum controls:
+## 6. Logging and alarms
 
-```bash
-chmod 600 .env
-openssl rand -hex 32
-```
+Container stdout/stderr is sent to a Terraform-managed CloudWatch log group. The log group has finite retention to avoid indefinite storage. CloudWatch monitors Auto Scaling Group CPU and sends Alarm/OK state changes through SNS.
 
-- `.env` is ignored by Git;
-- screenshots do not expose passwords;
-- `.pem` is never stored in the repository;
-- AWS access keys are not placed in `.env`.
+## 7. Cost control
 
-### Future
+The high-availability architecture costs more than the earlier baseline because it includes:
 
-- AWS Systems Manager Parameter Store or Secrets Manager;
-- rotation;
-- access auditing;
-- separate secrets for dev/staging/prod.
+- two always-running EC2 instances;
+- Multi-AZ RDS;
+- an Application Load Balancer;
+- two NAT Gateways;
+- two CloudFront distributions;
+- CloudWatch logs and metrics.
 
-Do not show Secrets Manager as deployed without evidence.
+I use AWS Budgets and Cost Explorer to monitor cost. Terraform also exposes **multi_az**, **enable_nat**, and **enable_interface_endpoints** so another environment can adjust the balance between reliability and cost.
 
-## 5. Application security
+## 8. Well-Architected review
 
-- password hashing;
-- JWT authentication;
-- role checks;
-- rate limiting;
-- file type/size validation;
-- lookup tokens;
-- server-side price calculation;
-- Decimal/NUMERIC for money;
-- audit/operation logs;
-- hidden demo accounts in production.
+### Operational Excellence
 
-Remaining improvements:
+- Infrastructure as Code;
+- remote state and locking;
+- modular design;
+- health checks;
+- CloudWatch, SNS, and operational documentation.
 
-- a strict order-transition state machine;
-- consistent status history/email after mock payment;
-- CSRF/cookie strategy if the authentication mode changes;
-- dependency/image scanning;
-- production origin HTTPS.
+### Security
 
-## 6. Logging and audit
+- private S3 + OAC;
+- private EC2 and isolated RDS;
+- IAM role;
+- Secrets Manager;
+- SSM;
+- no root access key.
 
-- container logs → `quickbite/backend`;
-- never log passwords, tokens, or full connection strings;
-- configure appropriate retention;
-- use operation logs for administrative actions;
-- CloudTrail can audit AWS API activity but should not be confused with application logs.
+### Reliability
 
-## 7. Cost Optimization
+- two Availability Zones;
+- ALB;
+- ASG min 2;
+- Multi-AZ RDS;
+- target tracking and health checks.
 
-### Demo right-sizing
+### Performance Efficiency
 
-| Resource | Size |
-|---|---|
-| EC2 | t3.micro |
-| RDS | db.t3.micro, Single-AZ, 20 GB |
-| S3 | actual usage |
-| CloudFront | pay as used |
-| CloudWatch | control ingestion and retention |
+- CloudFront caching;
+- ALB request distribution;
+- Auto Scaling;
+- t3.micro sized for the demo.
 
-### Controls
+### Cost Optimization
 
-1. create a Budget before deployment;
-2. tag resources by project/environment/owner;
-3. monitor Cost Explorer;
-4. use a suitable log-retention period;
-5. avoid NAT Gateway/ALB/ASG when the demo does not require them;
-6. delete resources immediately after evidence is captured;
-7. review Cost Explorer/Billing the next day;
-8. do not keep snapshots when disposable demo data is not needed.
+- Budget;
+- Cost Explorer;
+- Terraform destroy;
+- switches for NAT, endpoints, and Multi-AZ.
 
-## 8. Reliability versus cost
+### Sustainability
 
-Single-AZ RDS and one EC2 instance reduce cost but do not provide high availability. The report states the trade-off:
-
-- **demo:** low cost and accepted interruption;
-- **production:** Multi-AZ, ALB, Auto Scaling, backup/restore, secrets management, and IaC.
-
-## 9. Sustainability
-
-- use appropriate managed services;
-- right-size;
-- delete unused environments;
-- avoid retaining unnecessary logs/files;
-- prefer sufficient architecture over over-provisioning.
-
-## 10. Checklist
-
-- [ ] MFA;
-- [ ] scoped IAM role;
-- [ ] private RDS;
-- [ ] SSH from My IP;
-- [ ] `.env` not committed;
-- [ ] no secret in screenshots;
-- [ ] CloudWatch log retention;
-- [ ] Budget and email alert;
-- [ ] tags;
-- [ ] clean-up plan;
-- [ ] Cost Explorer review.
+- managed services;
+- Auto Scaling capacity;
+- log retention;
+- an explicit environment lifecycle.

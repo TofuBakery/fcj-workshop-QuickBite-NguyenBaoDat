@@ -108,7 +108,7 @@ Bài trình bày cũng chỉ ra ba vấn đề thực tế: stale connection gâ
 
 ## Ứng dụng vào QuickBite và công việc
 
-Sau sự kiện, tôi đối chiếu các nội dung đã nghe với dự án QuickBite:
+Sau sự kiện, em đối chiếu các nội dung đã nghe với dự án QuickBite:
 
 - **Docker:** tiếp tục đóng gói FastAPI backend và môi trường local để giảm khác biệt khi chuyển lên EC2.
 - **Cloud architecture:** giữ kiến trúc demo ở mức phù hợp gồm CloudFront, S3, EC2, RDS và CloudWatch; các thành phần nâng cao chỉ được ghi là hướng phát triển.
@@ -118,15 +118,15 @@ Sau sự kiện, tôi đối chiếu các nội dung đã nghe với dự án Qu
 - **Teamwork:** tổ chức task theo đầu việc nhỏ, ghi rõ người thực hiện, kết quả và bằng chứng để việc viết Worklog và Workshop nhất quán hơn.
 - **Operational practice:** duy trì tài liệu triển khai, troubleshooting và clean-up để người khác có thể tái hiện quy trình.
 
-GraphRAG và kiến trúc multiplayer không nằm trong phạm vi hiện tại của QuickBite, nhưng hai phần này giúp tôi hiểu rõ hơn cách lựa chọn database, communication pattern và managed service cho các bài toán khác nhau.
+GraphRAG và kiến trúc multiplayer không nằm trong phạm vi hiện tại của QuickBite, nhưng hai phần này giúp em hiểu rõ hơn cách lựa chọn database, communication pattern và managed service cho các bài toán khác nhau.
 
 ## Trải nghiệm sự kiện
 
-Đây là sự kiện đầu tiên tôi tham gia trong chương trình. Điểm tôi đánh giá cao nhất là nội dung không bị giới hạn ở một công nghệ duy nhất. Các phần trình bày đi từ teamwork, container, vận hành hệ thống đến AI, cybersecurity và real-time application. Nhờ đó, tôi có được góc nhìn rộng hơn về cách một sản phẩm cloud được xây dựng và vận hành.
+Đây là sự kiện đầu tiên em tham gia trong chương trình. Điểm em đánh giá cao nhất là nội dung không bị giới hạn ở một công nghệ duy nhất. Các phần trình bày đi từ teamwork, container, vận hành hệ thống đến AI, cybersecurity và real-time application. Nhờ đó, em có được góc nhìn rộng hơn về cách một sản phẩm cloud được xây dựng và vận hành.
 
-Phần Docker liên hệ trực tiếp nhất với QuickBite vì dự án đang sử dụng container cho môi trường local và backend. Phần Cloud/DevOps giúp tôi chú ý hơn đến monitoring, runbook và automation. Trong khi đó, phần AWS WAF kết hợp Machine Learning cho thấy một hệ thống bảo mật hiệu quả cần kết hợp nhiều lớp và phải dựa trên dữ liệu thực tế.
+Phần Docker liên hệ trực tiếp nhất với QuickBite vì dự án đang sử dụng container cho môi trường local và backend. Phần Cloud/DevOps giúp em chú ý hơn đến monitoring, runbook và automation. Trong khi đó, phần AWS WAF kết hợp Machine Learning cho thấy một hệ thống bảo mật hiệu quả cần kết hợp nhiều lớp và phải dựa trên dữ liệu thực tế.
 
-Tôi cũng nhận ra rằng một bài thuyết trình kỹ thuật tốt không chỉ liệt kê dịch vụ AWS. Các bài có demo, kiến trúc, khó khăn và bài học sau triển khai giúp người nghe hiểu rõ hơn giới hạn của giải pháp. Đây là cách trình bày tôi muốn áp dụng cho phần Workshop QuickBite: mô tả đúng những gì đã làm, có bằng chứng, nêu lỗi đã gặp và tách riêng phần “future improvement”.
+Em cũng nhận ra rằng một bài thuyết trình kỹ thuật tốt không chỉ liệt kê dịch vụ AWS. Các bài có demo, kiến trúc, khó khăn và bài học sau triển khai giúp người nghe hiểu rõ hơn giới hạn của giải pháp. Đây là cách trình bày em muốn áp dụng cho phần Workshop QuickBite: mô tả đúng những gì đã làm, có bằng chứng, nêu lỗi đã gặp và tách riêng phần “future improvement”.
 
 ## Bài học rút ra
 

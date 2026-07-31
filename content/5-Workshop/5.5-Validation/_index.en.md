@@ -1,135 +1,102 @@
 ---
-title: "Testing and Validation"
-date: 2026-07-30
+title: "Testing and validation"
+date: 2026-07-31
 weight: 5
 chapter: false
 pre: " <b> 5.5. </b> "
 ---
 # Testing and validation
 
-This section proves that QuickBite works end-to-end on the demo architecture rather than merely proving that individual resources exist.
+## 1. Infrastructure evidence
 
-## 1. Evidence matrix
+| Component | Validation result |
+|---|---|
+| CloudFront | Two distributions are Enabled |
+| EC2 / ASG | Two t3.micro instances in ap-southeast-1a and ap-southeast-1b, 3/3 checks passed |
+| API | Health endpoint returns status ok, service quickbite-api, version 1.4.0 |
+| ECR | quickbite-backend repository exists with AES-256 |
+| S3 | Web, menu-images, and tfstate buckets exist |
+| IAM | Roles for Auto Scaling, ELB, RDS, and application instances are present |
+| CloudWatch | CPU and target-tracking high/low alarms are active |
+| SNS | Email received an alarm state-change notification |
+| Application | Customer menu, admin dashboard, and image upload operate successfully |
 
-| Item | Test | Expected result | Evidence |
-|---|---|---|---|
-| CloudFront frontend | open domain and refresh a deep link | React renders without 403/404 | URL + screenshot |
-| Backend health | call `/health` | `{"status":"ok"}` | browser/curl |
-| Swagger | open `/docs` | OpenAPI UI renders | screenshot |
-| Private RDS | inspect connectivity and SG | Public access = No, 5432 from EC2 SG | console |
-| Database | `psql ... -c "\dt"` from EC2 | tables/views are visible | terminal |
-| Order flow | customer → admin → kitchen → delivery | order reaches completed state | screenshots/API output |
-| Image upload | `/uploads/image` | object appears under `menu/` | request + S3 |
-| CloudWatch logs | open `quickbite/backend` | startup/request/error logs exist | screenshot |
-| CPU alarm | open `quickbite-cpu-high` | metric/alarm/action are correct | screenshot |
-| SNS | inspect subscription | status is Confirmed | screenshot |
-| Budget | open Budget | threshold and email are correct | screenshot |
-| Clean-up | inspect resource list | demo resources are removed | terminal/console |
+## 2. API health check
 
-Do not mark an item “Pass” without real evidence.
+{{< report-image src="images/5-Workshop/evidence/api-healthcheck.png" alt="QuickBite API health check" caption="The CloudFront API domain returns status ok, service quickbite-api, and version 1.4.0." >}}
 
-## 2. Functional tests
+The health request validates the complete path through the CloudFront API distribution, ALB, target group, EC2 container, and FastAPI.
+
+## 3. Storefront and customer flow
+
+{{< report-image src="images/5-Workshop/evidence/customer-menu.png" alt="QuickBite customer menu" caption="The CloudFront-delivered storefront supports menu browsing, search, filtering, cart, order lookup, and login." >}}
+
+I tested menu browsing, filtering, sorting, cart actions, login, order creation, and tracking. The frontend uses the CloudFront API domain, so it does not produce mixed-content errors.
+
+## 4. Admin dashboard
+
+{{< report-image src="images/5-Workshop/evidence/admin-dashboard.png" alt="QuickBite admin dashboard" caption="The admin dashboard reads data from RDS through FastAPI and displays orders, revenue, status distribution, and best-selling items." >}}
+
+The dashboard shows total orders, total revenue, daily revenue, pending orders, status charts, and top items. This validates the frontend, backend, database, and role-based authorization end to end.
+
+## 5. Menu-image upload
+
+{{< report-image src="images/5-Workshop/evidence/menu-image-upload.png" alt="QuickBite menu-image upload" caption="The administrator uploads an image through FastAPI; the object is stored in the private menu-images bucket and displayed through the CloudFront /menu/* behavior." >}}
+
+I validated the upload from the admin interface. The backend uses the EC2 IAM role for PutObject, and the returned URL uses the web CloudFront distribution instead of a public S3 URL.
+
+## 6. CloudWatch and Auto Scaling alarms
+
+{{< report-image src="images/5-Workshop/evidence/cloudwatch-alarms.png" alt="QuickBite CloudWatch alarms" caption="CloudWatch displays the CPU alarm and the two target-tracking alarms associated with the Auto Scaling Group." >}}
+
+The alarms include:
+
+- **quickbite-cpu-high:** average CPU greater than 70% for 10 minutes;
+- **TargetTracking AlarmHigh:** supports scale-out;
+- **TargetTracking AlarmLow:** supports scale-in.
+
+{{< report-image src="images/5-Workshop/evidence/cloudwatch-overview.png" alt="QuickBite CloudWatch overview" caption="CloudWatch Overview displays the EC2 CPU metric and alarm state." >}}
+
+## 7. SNS email
+
+{{< report-image src="images/5-Workshop/evidence/sns-email.png" alt="CloudWatch alarm email delivered through SNS" caption="The email records quickbite-cpu-high changing from INSUFFICIENT_DATA to OK, including its threshold and state-change time." >}}
+
+The email confirms that the SNS subscription was accepted and that CloudWatch actions can notify outside the AWS Console.
+
+## 8. Business-flow validation
 
 ### Customer
 
-- register/sign in;
-- browse and filter menu;
-- add/remove/update cart quantities;
-- create a COD order;
-- create a mock e-wallet order;
-- view subtotal, delivery fee, tax, and total;
-- view history/tracking;
-- look up with order code/token;
-- test an invalid token.
+- browse menus and images;
+- log in;
+- create orders;
+- use COD or mock e-wallet;
+- track and look up orders.
 
 ### Admin
 
-- dashboard;
-- menu/category management;
-- image upload;
-- settings updates;
-- order confirmation/cancellation;
-- reports and CSV export;
-- operation logs.
+- view the dashboard;
+- manage items and categories;
+- upload images;
+- confirm and monitor orders;
+- export reports and view audit logs.
 
 ### Kitchen
 
-- view kitchen orders;
-- move confirmed → preparing → ready;
-- verify unauthorized roles are rejected.
+- view confirmed orders;
+- move them through preparing and ready.
 
 ### Delivery
 
 - view ready orders;
-- move ready → completed;
-- verify the customer sees the new status.
+- complete delivery.
 
-## 3. Database validation
+## 9. Security validation
 
-From EC2:
-
-```bash
-psql "$DB" -c "\dt"
-psql "$DB" -c "SELECT id, order_code, status, total FROM orders ORDER BY id DESC LIMIT 5;"
-psql "$DB" -c "SELECT * FROM daily_revenue LIMIT 5;"
-```
-
-Verify:
-
-- orders and line items are stored together;
-- totals use NUMERIC/Decimal;
-- payment records match method/status;
-- status history contains the required transitions;
-- reporting views can be queried.
-
-## 4. Security negative tests
-
-- call an admin endpoint with a customer token → 403;
-- upload a non-JPEG/PNG/WebP file → rejected;
-- upload an oversized file → rejected;
-- repeatedly fail login → rate limit;
-- connect to RDS port 5432 from the Internet → blocked;
-- let the EC2 role access an unrelated bucket → AccessDenied;
-- send CORS from an unknown origin → blocked.
-
-## 5. Failure tests
-
-| Scenario | Observation |
-|---|---|
-| restart backend container | health recovers and logs show restart |
-| use an incorrect RDS password | connection failure is logged without exposing the password |
-| temporarily close SG 5432 | DB requests fail in a controlled manner with clear logs |
-| temporarily remove S3 permission | upload returns an appropriate error and CloudWatch logs it |
-| refresh a deep frontend route | fallback returns `index.html` |
-| misconfigure CORS | browser blocks and the configuration cause is identifiable |
-
-Restore the secure configuration after testing.
-
-## 6. Performance and cost checks
-
-- observe EC2 CPU/memory under demo load;
-- inspect RDS connections;
-- review log size and retention;
-- verify that no resources exist outside scope;
-- check Cost Explorer after deployment and after clean-up.
-
-## 7. Acceptance criteria
-
-The workshop is complete when:
-
-- critical functional tests pass;
-- no secrets appear in source/screenshots;
-- RDS is private;
-- logs and alarms have evidence;
-- frontend/backend/database/S3 work together;
-- the report contains real URLs, screenshots, and outputs;
-- clean-up is complete.
-
-## 8. Limitations to disclose
-
-- mock payment is not a real payment gateway;
-- Mailpit is a local mock;
-- Lambda/SES is optional;
-- API Gateway is not used;
-- ASG/Multi-AZ/WAF/Secrets Manager/AWS Backup are not part of the demo;
-- a 5xx alarm is not deployed without an ALB/custom metric.
+- direct S3 access is not used as the public delivery path;
+- EC2 has no public application endpoint; workload traffic enters through the ALB;
+- RDS is in isolated subnets and accepts traffic only from the App Security Group;
+- secrets are not stored in Terraform source or the Docker image;
+- EC2 uses an IAM role rather than an access key;
+- SSM replaces SSH;
+- evidence screenshots do not contain active credentials.

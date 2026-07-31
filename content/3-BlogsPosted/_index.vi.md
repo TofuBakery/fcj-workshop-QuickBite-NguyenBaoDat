@@ -6,7 +6,7 @@ chapter: false
 pre: " <b> 3. </b> "
 includeInReport: false
 ---
-Phần này giới thiệu ba bài viết về AWS được tôi biên soạn trong quá trình phát triển QuickBite. Mỗi bài đều có phiên bản tiếng Việt và tiếng Anh.
+Phần này giới thiệu ba bài viết về AWS được em biên soạn trong quá trình phát triển QuickBite. Mỗi bài đều có phiên bản tiếng Việt và tiếng Anh.
 
 ### [Blog 1 - Event-Driven Architecture trên AWS](3.1-Blog1/)
 Bài viết trình bày cách Amazon EventBridge, Amazon SQS, Amazon SNS và AWS Lambda có thể tách các tác vụ phụ như gửi email, thông báo và cập nhật báo cáo khỏi request tạo đơn hàng. Nội dung cũng đề cập retry, idempotency, thứ tự xử lý, dead-letter queue và monitoring, sau đó liên hệ với hướng mở rộng tương lai của QuickBite.

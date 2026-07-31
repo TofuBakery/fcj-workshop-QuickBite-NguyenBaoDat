@@ -1,102 +1,59 @@
 ---
 title: "Prerequisites"
-date: 2026-07-30
+date: 2026-07-31
 weight: 2
 chapter: false
 pre: " <b> 5.2. </b> "
 ---
 # Prerequisites
 
-## 1. Account and Region
+## 1. Environment used
 
-- an AWS account able to create EC2, RDS, S3, CloudFront, IAM roles, CloudWatch, SNS, and Budgets;
-- do not use the root account for daily work;
-- enable MFA for important identities;
-- Region: `ap-southeast-1`;
-- create an AWS Budget before resources.
+- Windows 11 and PowerShell;
+- AWS CLI v2;
+- Terraform 1.5 or later;
+- Docker Desktop;
+- Node.js LTS and npm;
+- Git;
+- Hugo Extended for report validation;
+- AWS Region **ap-southeast-1**.
 
-## 2. Local tools
+## 2. Initial account security
 
-```text
-Git
-Docker Desktop / Docker Engine
-Docker Compose plugin
-Node.js and npm
-AWS CLI
-SSH client
-PostgreSQL client (can be installed on EC2)
-Hugo Extended for viewing the report
-```
+During the early stage, I discovered that a root-account access key had appeared in a screenshot. I moved to a dedicated IAM user, deleted the exposed root key, and used IAM credentials for AWS CLI. From that point onward, I reviewed screenshots to ensure that Access Keys, Secret Keys, database passwords, and JWT secrets were not exposed.
 
-Verify:
+## 3. Source structure
 
-```bash
-git --version
-docker --version
-docker compose version
-node --version
-npm --version
-aws --version
-hugo version
-```
-
-## 3. Source code
-
-```bash
-git clone https://github.com/edrictrn/quickbite.git
-cd quickbite
-```
-
-Do not commit:
-
-```text
-.env
-*.pem
-database password
-AWS access key
-application secret
-```
-
-## 4. Naming convention
-
-| Resource | Proposed name |
+| Component | Content |
 |---|---|
-| EC2 | `quickbite-app` |
-| EC2 IAM role | `quickbite-ec2-role` |
-| EC2 security group | `quickbite-ec2-sg` |
-| RDS | `quickbite-db` |
-| RDS security group | `quickbite-rds-sg` |
-| Web bucket | `quickbite-web-<env>` |
-| Image bucket | `quickbite-menu-images-<env>` |
-| Log group | `quickbite/backend` |
-| CPU alarm | `quickbite-cpu-high` |
+| Backend | FastAPI, SQLAlchemy, Alembic, PostgreSQL schema, tests, and Dockerfile |
+| Frontend | React, TypeScript, Vite, Material UI, and production build |
+| Terraform bootstrap | S3 remote state, DynamoDB lock, and ECR |
+| Terraform stack | network, data, and app modules |
+| Report | Bilingual Hugo site, architecture, worklog, and evidence images |
 
-Replace `<env>` with a unique suffix or environment name.
+## 4. Terraform structure
 
-## 5. Permissions and network
+| Directory | Responsibility |
+|---|---|
+| **terraform/bootstrap** | Creates the state bucket, lock table, and ECR first |
+| **terraform/stack/modules/network** | VPC, subnets, route tables, NAT, endpoints, and Security Groups |
+| **terraform/stack/modules/data** | Multi-AZ RDS and Secrets Manager |
+| **terraform/stack/modules/app** | ALB, ASG, IAM, CloudWatch, SNS, S3, and CloudFront |
+| **terraform/stack** | Wires the modules and exports web_url, api_url, buckets, and log group |
 
-- EC2 role: `s3:GetObject`, `s3:PutObject` for the exact bucket/prefix and CloudWatch Logs write permissions;
-- port 22: My IP only;
-- RDS 5432: source is the EC2 security group;
-- RDS Public access: `No`;
-- web S3 bucket: private and accessed through CloudFront OAC.
+## 5. Main deployment values
 
-## 6. Required deployment files
+- instance type: **t3.micro**;
+- database class: **db.t3.micro**;
+- RDS Multi-AZ: **true**;
+- Auto Scaling Group: **min 2, desired 2, max 4**;
+- CloudWatch CPU threshold: **70% for two 300-second periods**;
+- Region: **ap-southeast-1**;
+- frontend and image buckets: private;
+- EC2: private subnets, managed through SSM;
+- RDS: isolated subnets, accepting TCP 5432 only from the App Security Group.
 
-- `docker-compose.aws.yml`;
-- backend `Dockerfile`;
-- frontend production Dockerfile/build configuration;
-- `.env.example`;
-- SQL schema/seed/views;
-- `docs/deploy-walkthrough.md`;
-- `docs/cleanup.md`.
+## 6. Project files
 
-## 7. Pre-deployment checklist
-
-- [ ] AWS Budget exists;
-- [ ] the `.pem` key pair is stored securely;
-- [ ] region is correct;
-- [ ] source contains no secrets;
-- [ ] local E2E has passed;
-- [ ] demo/future scope is understood;
-- [ ] a folder exists for screenshots and terminal outputs.
+- [QuickBite source](../../attachments/quickbite-source.zip)

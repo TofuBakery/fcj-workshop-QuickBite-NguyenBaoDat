@@ -164,7 +164,7 @@ After the event, I connected the sessions to QuickBite in the following ways:
 - **Future agentic ordering:** QuickBite could later add a conversational ordering assistant, but the agent should call controlled menu, cart, order, and payment APIs rather than invent prices or order states.
 - **Verify before acting:** every cart or order change must be validated by the backend against database data, roles, and allowed state transitions.
 - **Extensible architecture:** frontend, backend, database, and object storage are already separated, creating a foundation for future channel adapters or asynchronous services.
-- **Cost awareness:** continue using an EC2 `t3.micro`, a Single-AZ RDS `db.t3.micro`, S3, CloudFront, and CloudWatch for the demo; add Bedrock or AgentCore only when there is a clear use case and a cost estimate.
+- **Cost and reliability:** the final architecture uses two **t3.micro** EC2 instances, **db.t3.micro Multi-AZ** RDS, ALB, S3, CloudFront, and CloudWatch; I monitor Budget/Cost Explorer and would add Bedrock or AgentCore only with a clear use case and cost estimate.
 - **Monitoring:** beyond a CPU alarm, future improvements could track successful-order rate, login failures, and order API latency.
 - **Security:** never commit `.env`, secrets, tokens, or private keys; use an EC2 IAM role with least privilege.
 - **AI-assisted architecture:** AI may create draft diagrams, checklists, or cost estimates, but the report must be reconciled with resources that were actually deployed.

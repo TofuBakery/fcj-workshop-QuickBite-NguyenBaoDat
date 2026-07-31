@@ -1,135 +1,102 @@
 ---
 title: "Kiểm thử và xác thực"
-date: 2026-07-30
+date: 2026-07-31
 weight: 5
 chapter: false
 pre: " <b> 5.5. </b> "
 ---
 # Kiểm thử và xác thực
 
-Mục tiêu của phần này là chứng minh QuickBite hoạt động end-to-end trên kiến trúc demo, không chỉ chứng minh từng resource tồn tại.
+## 1. Bằng chứng hạ tầng
 
-## 1. Evidence matrix
+| Thành phần | Kết quả xác thực |
+|---|---|
+| CloudFront | Hai distributions ở trạng thái Enabled |
+| EC2 / ASG | Hai t3.micro tại ap-southeast-1a và ap-southeast-1b, 3/3 checks passed |
+| API | Health endpoint trả status ok, service quickbite-api, version 1.4.0 |
+| ECR | Repository quickbite-backend tồn tại, AES-256 |
+| S3 | Web, menu-images và tfstate buckets tồn tại |
+| IAM | Roles cho Auto Scaling, ELB, RDS và application instances được tạo |
+| CloudWatch | CPU alarm và target tracking high/low alarms hoạt động |
+| SNS | Email nhận được thông báo khi alarm chuyển trạng thái |
+| Application | Customer menu, admin dashboard và image upload hoạt động |
 
-| Hạng mục | Cách kiểm tra | Kết quả mong đợi | Bằng chứng |
-|---|---|---|---|
-| CloudFront frontend | mở domain và refresh deep link | React hiển thị, không lỗi 403/404 | URL + screenshot |
-| Backend health | gọi `/health` | `{"status":"ok"}` | browser/curl |
-| Swagger | mở `/docs` | OpenAPI UI hiển thị | screenshot |
-| RDS private | xem connectivity và SG | Public access = No, 5432 từ EC2 SG | console |
-| Database | `psql ... -c "\dt"` từ EC2 | thấy tables/views | terminal |
-| Order flow | customer → admin → kitchen → delivery | đơn hoàn thành đúng trạng thái | screenshots/API output |
-| Image upload | `/uploads/image` | object xuất hiện dưới `menu/` | request + S3 |
-| CloudWatch logs | mở `quickbite/backend` | có startup/request/error logs | screenshot |
-| CPU alarm | mở `quickbite-cpu-high` | metric/alarm/action đúng | screenshot |
-| SNS | xác nhận subscription | status Confirmed | screenshot |
-| Budget | mở Budget | ngưỡng và email đúng | screenshot |
-| Clean-up | kiểm tra resource list | tài nguyên demo đã xóa | terminal/console |
+## 2. API health check
 
-Không đánh dấu “Pass” nếu chưa có bằng chứng thật.
+{{< report-image src="images/5-Workshop/evidence/api-healthcheck.png" alt="QuickBite API health check" caption="CloudFront API domain trả JSON status ok, service quickbite-api và version 1.4.0." >}}
 
-## 2. Functional tests
+Health check xác nhận CloudFront API distribution, ALB, target group, EC2 container và FastAPI đều hoạt động trong cùng một request path.
+
+## 3. Storefront và luồng customer
+
+{{< report-image src="images/5-Workshop/evidence/customer-menu.png" alt="QuickBite customer menu" caption="Storefront được phân phối qua CloudFront, hỗ trợ menu, tìm kiếm, lọc, giỏ hàng, tra cứu và đăng nhập." >}}
+
+Em kiểm tra menu, filter, sort, cart, login, tạo đơn và order tracking. Frontend gọi API qua CloudFront API domain nên không gặp mixed content.
+
+## 4. Admin dashboard
+
+{{< report-image src="images/5-Workshop/evidence/admin-dashboard.png" alt="QuickBite admin dashboard" caption="Dashboard quản trị đọc dữ liệu từ RDS qua FastAPI và hiển thị số đơn, doanh thu, trạng thái và món bán chạy." >}}
+
+Dashboard hiển thị tổng đơn, tổng doanh thu, doanh thu trong ngày, pending orders, biểu đồ trạng thái và top món. Điều này xác nhận frontend, backend, database và role-based authorization hoạt động end-to-end.
+
+## 5. Upload ảnh món
+
+{{< report-image src="images/5-Workshop/evidence/menu-image-upload.png" alt="Upload ảnh món trên QuickBite" caption="Admin upload ảnh qua FastAPI; object được lưu trong S3 private menu-images và được hiển thị lại qua CloudFront behavior /menu/*." >}}
+
+Luồng upload đã được kiểm tra từ giao diện admin. Backend dùng EC2 IAM role để PutObject; URL trả về dùng CloudFront web distribution thay vì public S3 URL.
+
+## 6. CloudWatch và Auto Scaling alarms
+
+{{< report-image src="images/5-Workshop/evidence/cloudwatch-alarms.png" alt="CloudWatch alarms của QuickBite" caption="CloudWatch hiển thị CPU alarm và hai target tracking alarms của Auto Scaling Group." >}}
+
+Các alarm gồm:
+
+- **quickbite-cpu-high:** CPU trung bình lớn hơn 70% trong 10 phút;
+- **TargetTracking AlarmHigh:** hỗ trợ scale out;
+- **TargetTracking AlarmLow:** hỗ trợ scale in.
+
+{{< report-image src="images/5-Workshop/evidence/cloudwatch-overview.png" alt="CloudWatch overview QuickBite" caption="CloudWatch Overview hiển thị metric CPU và trạng thái alarm của dịch vụ EC2." >}}
+
+## 7. SNS email
+
+{{< report-image src="images/5-Workshop/evidence/sns-email.png" alt="Email CloudWatch alarm gửi qua SNS" caption="Email xác nhận alarm quickbite-cpu-high chuyển từ INSUFFICIENT_DATA sang OK, kèm threshold và thời điểm thay đổi trạng thái." >}}
+
+Email chứng minh SNS subscription đã được xác nhận và CloudWatch action có thể gửi thông báo ra ngoài AWS Console.
+
+## 8. Kiểm thử nghiệp vụ
 
 ### Customer
 
-- đăng ký/đăng nhập;
-- xem và lọc menu;
-- thêm/xóa/cập nhật số lượng trong giỏ;
-- tạo COD order;
-- tạo mock e-wallet order;
-- xem subtotal, delivery fee, tax và total;
-- xem lịch sử/tracking;
-- lookup bằng order code/token;
-- thử token sai.
+- xem menu và ảnh;
+- đăng nhập;
+- tạo đơn;
+- thanh toán COD hoặc mock e-wallet;
+- theo dõi trạng thái và tra cứu đơn.
 
 ### Admin
 
-- dashboard;
-- quản lý menu/category;
+- xem dashboard;
+- quản lý món và danh mục;
 - upload ảnh;
-- cập nhật settings;
-- xác nhận/hủy đơn;
-- xem reports và export CSV;
-- xem operation logs.
+- xác nhận và theo dõi đơn;
+- xuất báo cáo và xem audit log.
 
 ### Kitchen
 
-- xem đơn được giao cho bếp;
-- chuyển confirmed → preparing → ready;
-- kiểm tra role khác không được phép.
+- xem đơn đã xác nhận;
+- chuyển trạng thái preparing và ready.
 
 ### Delivery
 
 - xem đơn ready;
-- chuyển ready → completed;
-- kiểm tra customer thấy trạng thái mới.
+- hoàn tất giao hàng.
 
-## 3. Database validation
+## 9. Xác thực bảo mật
 
-Trên EC2:
-
-```bash
-psql "$DB" -c "\dt"
-psql "$DB" -c "SELECT id, order_code, status, total FROM orders ORDER BY id DESC LIMIT 5;"
-psql "$DB" -c "SELECT * FROM daily_revenue LIMIT 5;"
-```
-
-Kiểm tra:
-
-- order và order_items cùng được ghi;
-- total dùng NUMERIC/Decimal;
-- payment record phù hợp method/status;
-- status history không thiếu bước;
-- view báo cáo truy vấn được.
-
-## 4. Security negative tests
-
-- gọi admin endpoint bằng customer token → 403;
-- upload file không phải JPEG/PNG/WebP → bị từ chối;
-- upload file vượt giới hạn → bị từ chối;
-- login sai nhiều lần → rate limit;
-- RDS port 5432 từ Internet → không kết nối;
-- EC2 role thử truy cập bucket không liên quan → AccessDenied;
-- CORS request từ origin lạ → bị chặn.
-
-## 5. Failure tests
-
-| Tình huống | Cần quan sát |
-|---|---|
-| restart backend container | health phục hồi, log có restart |
-| sai RDS password | backend log lỗi kết nối, không lộ password |
-| đóng SG 5432 tạm thời | request DB lỗi có kiểm soát, log rõ |
-| xóa quyền S3 tạm thời | upload trả lỗi phù hợp, CloudWatch có log |
-| route frontend sâu | refresh vẫn về `index.html` |
-| CORS sai | browser chặn và log/config được xác định |
-
-Sau test phải khôi phục cấu hình an toàn.
-
-## 6. Performance and cost checks
-
-- quan sát EC2 CPU/memory ở tải demo;
-- kiểm tra RDS connections;
-- kiểm tra kích thước log và retention;
-- xác nhận không có tài nguyên ngoài scope;
-- kiểm tra Cost Explorer sau deployment và sau clean-up.
-
-## 7. Acceptance criteria
-
-Workshop được coi là hoàn thành khi:
-
-- tất cả test chức năng quan trọng pass;
-- không có secret trong source/screenshot;
-- RDS private;
-- log và alarm có bằng chứng;
-- frontend/backend/database/S3 hoạt động cùng nhau;
-- report có URL, screenshot và output thực tế;
-- clean-up hoàn thành.
-
-## 8. Các giới hạn cần ghi trong kết quả
-
-- mock payment không phải payment gateway thật;
-- Mailpit là local mock;
-- Lambda/SES là optional;
-- không có API Gateway;
-- không có ASG/Multi-AZ/WAF/Secrets Manager/AWS Backup trong demo;
-- alarm 5xx chưa được triển khai nếu không có ALB/custom metric.
+- truy cập trực tiếp S3 không được dùng làm đường public chính;
+- EC2 không có public workload endpoint; traffic ứng dụng đi qua ALB;
+- RDS nằm trong isolated subnets và chỉ nhận kết nối từ App Security Group;
+- secret không nằm trong Terraform source hoặc Docker image;
+- EC2 dùng IAM role thay vì access key;
+- SSM thay cho SSH;
+- screenshot không chứa credential đang hoạt động.

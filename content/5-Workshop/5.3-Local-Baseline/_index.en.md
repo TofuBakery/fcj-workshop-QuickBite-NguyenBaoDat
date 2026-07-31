@@ -1,83 +1,54 @@
 ---
-title: "Local Baseline"
-date: 2026-07-30
+title: "Local baseline"
+date: 2026-07-31
 weight: 3
 chapter: false
 pre: " <b> 5.3. </b> "
 ---
 # Local baseline
 
-Before creating AWS resources, QuickBite must run reliably locally. This separates application defects from cloud-configuration defects.
+## 1. Architecture before deployment
 
-## 1. Start from clean data
+Before creating AWS resources, I completed QuickBite locally with four main containers:
 
-```bash
-docker compose down -v
-docker compose up --build
-```
+| Component | Technology |
+|---|---|
+| Frontend | React, TypeScript, and Vite |
+| Backend | FastAPI and Uvicorn |
+| Database | PostgreSQL |
+| Mock email | Mailpit |
 
-Expected addresses:
+Docker Compose allowed me to validate the application in a production-like environment before moving the database to RDS and the backend to EC2.
 
-```text
-Frontend: http://127.0.0.1:5173
-Backend:  http://127.0.0.1:8000
-Swagger:  http://127.0.0.1:8000/docs
-Health:   http://127.0.0.1:8000/health
-Mailpit:  http://127.0.0.1:8025
-```
+## 2. Validated flows
 
-## 2. Health check
+- registration, login, and session restoration;
+- customer, admin, kitchen, and delivery authorization;
+- menu search, filtering, sorting, and cart operations;
+- COD and mock e-wallet orders;
+- server-side subtotal, delivery fee, tax, and total calculation;
+- admin order confirmation and management;
+- kitchen preparing and ready transitions;
+- delivery completion;
+- order tracking with code and token;
+- dashboards, CSV reports, and audit logs;
+- image-upload validation by type and size;
+- mock email through Mailpit;
+- health endpoint and automated tests.
 
-```bash
-curl http://127.0.0.1:8000/health
-```
+## 3. AWS-oriented changes
 
-Expected result:
+I mapped the local components to AWS services:
 
-```json
-{"status":"ok"}
-```
+- local PostgreSQL became RDS PostgreSQL;
+- the frontend production build moved to S3 and CloudFront;
+- the backend Docker image was pushed to ECR;
+- the backend ran in an EC2 Auto Scaling Group;
+- image files moved to the menu-images S3 bucket;
+- local secrets moved to Secrets Manager;
+- SSH was replaced by SSM Session Manager;
+- container stdout/stderr moved to CloudWatch Logs.
 
-## 3. Automated tests
+## 4. Why I retained the local baseline
 
-```bash
-docker compose exec   -e DATABASE_URL=sqlite:///./quickbite.db   -e EMAIL_ENABLED=false   backend pytest -q
-```
-
-E2E script:
-
-```bash
-docker compose exec   -e DATABASE_URL=sqlite:///./quickbite.db   -e EMAIL_ENABLED=false   backend python scripts/e2e_local.py
-```
-
-## 4. Manual business-flow test
-
-1. customer signs in;
-2. adds menu items to the cart;
-3. creates a COD order;
-4. creates a mock e-wallet order and completes simulated payment;
-5. admin confirms;
-6. kitchen moves preparing → ready;
-7. delivery completes;
-8. customer views history/tracking;
-9. Mailpit is checked;
-10. dashboards, reports, and operation logs are reviewed.
-
-## 5. Transparent limitations
-
-- mock e-wallet is simulated and is not a real payment gateway;
-- Mailpit is a local email mock;
-- status transitions and the audit trail after mock payment need further hardening;
-- S3 upload works only after AWS bucket/role configuration;
-- demo accounts must be hidden in the production build.
-
-## 6. Local evidence
-
-- healthy Docker containers;
-- four-role frontend;
-- Swagger and `/health`;
-- PostgreSQL tables;
-- Mailpit email;
-- pytest/E2E output.
-
-Local evidence does not replace AWS evidence.
+The local baseline helped me separate application defects from infrastructure defects. When a deployment issue appeared, I could compare it with the local result and determine whether the cause was code, environment variables, networking, IAM, CloudFront, the database, or local CLI tooling.

@@ -1,158 +1,46 @@
 ---
 title: "Clean-up"
-date: 2026-07-30
+date: 2026-07-31
 weight: 7
 chapter: false
 pre: " <b> 5.7. </b> "
 ---
 # Clean-up
 
-Clean-up is mandatory because EC2, RDS, CloudFront, CloudWatch, and related resources may continue generating charges.
+The QuickBite infrastructure has a complete Terraform lifecycle. At the time this report was finalized, I kept the environment running for the demo and had not yet executed destroy.
 
-> Use `--skip-final-snapshot` only when the database contains disposable demo data. Environments that must retain data require an appropriate snapshot/backup.
+## 1. Lifecycle order
 
-## 1. Capture evidence before deletion
+The main stack is destroyed first, followed by the bootstrap stack. This keeps remote state and ECR available until Terraform has removed the primary resources.
 
-- CloudFront domain and frontend;
-- `/health` and `/docs`;
-- order flow;
-- RDS `Available`, `\dt`, and sample data;
-- S3 image object;
-- CloudWatch logs;
-- CPU alarm;
-- SNS subscription;
-- Budget;
-- Cost Explorer.
+- **terraform destroy** in the stack directory removes the VPC, ALB, ASG, RDS, CloudFront, content S3 buckets, IAM, CloudWatch, SNS, and Secrets Manager;
+- **terraform destroy** in the bootstrap directory removes ECR, the state bucket, and the DynamoDB lock table.
 
-Hide passwords, tokens, and account IDs where appropriate.
+## 2. Destroy-oriented configuration
 
-## 2. Stop traffic
+The Terraform source includes demo-environment lifecycle settings:
 
-- announce the end of the demo;
-- stop creating new orders;
-- ensure no test process remains;
-- save required terminal output.
+- content and state S3 buckets use force_destroy;
+- ECR uses force_delete;
+- RDS deletion protection is disabled;
+- RDS skips the final snapshot for disposable demo data;
+- Secrets Manager uses a zero-day recovery window;
+- the CloudWatch log group is Terraform-managed.
 
-## 3. CloudFront
+These settings make complete deletion possible but are not suitable for production data that requires retention or recovery.
 
-1. disable the distribution;
-2. wait until the change is deployed;
-3. delete the distribution;
-4. delete the Origin Access Control if no longer used.
+## 3. Cost-sensitive components
 
-Disabling CloudFront can take time.
+- NAT Gateways;
+- Multi-AZ RDS;
+- Application Load Balancer;
+- two t3.micro EC2 instances;
+- CloudWatch Logs;
+- S3 object versions;
+- CloudFront traffic.
 
-## 4. S3
+AWS Budgets and Cost Explorer monitor cost during the demo. When the environment is no longer required, Terraform state remains the authoritative list of project-managed resources.
 
-Empty buckets:
+## 4. Current status
 
-```bash
-aws s3 rm s3://quickbite-web-<env> --recursive
-aws s3 rm s3://quickbite-menu-images-<env> --recursive
-```
-
-If versioning is enabled, also delete versions and delete markers.
-
-Delete buckets:
-
-```bash
-aws s3 rb s3://quickbite-web-<env>
-aws s3 rb s3://quickbite-menu-images-<env>
-```
-
-## 5. EC2
-
-Do not save `.env` into the repository before termination.
-
-```bash
-aws ec2 terminate-instances --instance-ids <instance-id>
-```
-
-Then remove:
-
-- the AWS key pair if unused;
-- the local `.pem` according to personal policy;
-- any Elastic IP;
-- unintended volumes/snapshots;
-- the EC2 security group after dependencies are removed.
-
-## 6. RDS
-
-### Disposable demo
-
-```bash
-aws rds delete-db-instance   --db-instance-identifier quickbite-db   --skip-final-snapshot   --delete-automated-backups
-```
-
-### Data that must be retained
-
-Use a final snapshot:
-
-```bash
-aws rds delete-db-instance   --db-instance-identifier quickbite-db   --final-db-snapshot-identifier quickbite-db-final-<date>
-```
-
-After RDS deletion, remove the RDS SG/subnet group if unused.
-
-## 7. CloudWatch and SNS
-
-Delete:
-
-- alarm `quickbite-cpu-high`;
-- log group `quickbite/backend`;
-- dashboards/custom metrics if any;
-- SNS subscription/topic if dedicated to the demo.
-
-Example:
-
-```bash
-aws cloudwatch delete-alarms --alarm-names quickbite-cpu-high
-aws logs delete-log-group --log-group-name quickbite/backend
-```
-
-## 8. IAM
-
-- detach/delete the inline policy;
-- remove the role from the instance profile;
-- delete the instance profile;
-- delete `quickbite-ec2-role`.
-
-Delete only project-created roles/policies, not shared organizational roles.
-
-## 9. Network
-
-If a dedicated VPC was created:
-
-1. remove remaining dependencies;
-2. delete security groups;
-3. delete route tables/subnets/Internet Gateway;
-4. delete the VPC.
-
-The demo does not require a NAT Gateway. If one was accidentally created, delete it early because it can be costly.
-
-## 10. Post-clean-up verification
-
-- EC2 Instances: no running/stopped instance;
-- RDS Databases: no instance;
-- S3: both buckets removed;
-- CloudFront: distribution deleted;
-- CloudWatch: log group/alarm deleted;
-- SNS: demo topic deleted;
-- IAM: demo role/policy deleted;
-- Elastic IP: no unattached address;
-- Billing/Cost Explorer: check the next day.
-
-## 11. Clean-up evidence
-
-Capture or save:
-
-- delete commands;
-- EC2/RDS lists after deletion;
-- S3 list;
-- CloudFront list;
-- CloudWatch list;
-- next-day Cost Explorer.
-
-## 12. Reflection
-
-Clean-up is not only about saving credits. It demonstrates Operational Excellence, Cost Optimization, and Sustainability: each resource has an owner, lifecycle, and explicit end.
+Clean-up is not included in the evidence set because the frontend, API, and dashboard are still being used to present the final result. The report does not claim clean-up evidence at this time.
