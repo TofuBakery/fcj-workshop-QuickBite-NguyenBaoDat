@@ -16,3 +16,12 @@ Bài viết giới thiệu RTO, RPO, Backup and Restore, Pilot Light, Warm Stand
 
 ### [Blog 3 - Least Privilege trên AWS](3.3-Blog3/)
 Bài viết phân tích nguyên tắc least privilege, IAM role cho workload, quyền theo từng resource và việc rà soát quyền định kỳ. Ví dụ QuickBite chỉ cấp cho EC2 role quyền cần thiết đối với prefix ảnh món ăn trên S3 và CloudWatch Logs, thay vì sử dụng quyền quản trị rộng.
+
+## 3 post đã được đăng
+
+{{< report-image src="images/3-BlogsPosted/evidence/blog-post-event-driven.png" alt="Bài đăng Event-Driven Architecture trên AWS trong AWS Study Group VN" >}}
+
+{{< report-image src="images/3-BlogsPosted/evidence/blog-post-disaster-recovery.png" alt="Bài đăng Disaster Recovery trên AWS trong AWS Study Group VN" >}}
+
+{{< report-image src="images/3-BlogsPosted/evidence/blog-post-least-privilege.png" alt="Bài đăng Least Privilege trên AWS trong AWS Study Group VN" >}}
+

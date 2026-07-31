@@ -16,3 +16,12 @@ This article introduces RTO, RPO, Backup and Restore, Pilot Light, Warm Standby,
 
 ### [Blog 3 - Least Privilege on AWS](3.3-Blog3/)
 This article discusses the principle of least privilege, IAM roles for workloads, resource-level permissions, and regular access reviews. The QuickBite example limits the EC2 role to the required S3 menu-image prefix and CloudWatch Logs permissions instead of granting broad administrative access.
+
+## 3 posts have been published
+
+{{< report-image src="images/3-BlogsPosted/evidence/blog-post-event-driven.png" alt="Event-Driven Architecture on AWS post in AWS Study Group VN" >}}
+
+{{< report-image src="images/3-BlogsPosted/evidence/blog-post-disaster-recovery.png" alt="Disaster Recovery on AWS post in AWS Study Group VN" >}}
+
+{{< report-image src="images/3-BlogsPosted/evidence/blog-post-least-privilege.png" alt="Least Privilege on AWS post in AWS Study Group VN" >}}
+
