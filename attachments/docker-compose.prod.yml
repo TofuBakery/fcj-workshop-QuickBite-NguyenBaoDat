@@ -1,0 +1,63 @@
+# Production-like stack: frontend served by nginx (built static), backend via gunicorn/uvicorn.
+# Secrets come from .env (never committed). On AWS you typically point DATABASE_URL at RDS
+# and drop the local `db` service.
+#
+#   cp .env.example .env   # then edit secrets
+#   docker compose -f docker-compose.prod.yml up --build -d
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: quickbite-db
+    environment:
+      POSTGRES_DB: quickbite
+      POSTGRES_USER: quickbite
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - quickbite_pgdata:/var/lib/postgresql/data
+      - ./backend/sql/schema_postgres.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./backend/sql/seed_postgres.sql:/docker-entrypoint-initdb.d/02_seed.sql
+      - ./backend/sql/views_postgres.sql:/docker-entrypoint-initdb.d/03_views.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quickbite -d quickbite"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: quickbite-backend
+    environment:
+      # On AWS, replace with the RDS endpoint and remove the local db service.
+      DATABASE_URL: postgresql://quickbite:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/quickbite
+      AUTO_CREATE_TABLES: "false"
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+      ACCESS_TOKEN_EXPIRE_MINUTES: "120"
+      # Set to your CloudFront/S3 or EC2 public origin(s).
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost}
+      AWS_REGION: ${AWS_REGION:-ap-southeast-1}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-quickbite-menu-images}
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      SHOW_DEMO_ACCOUNTS: "false"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        # Bake the backend URL into the static build.
+        VITE_API_BASE: ${VITE_API_BASE:-http://localhost:8000}
+        VITE_BASENAME: ""
+    container_name: quickbite-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  quickbite_pgdata:

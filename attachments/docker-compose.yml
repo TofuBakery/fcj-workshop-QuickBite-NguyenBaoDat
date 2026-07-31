@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: quickbite-db
+    environment:
+      POSTGRES_DB: quickbite
+      POSTGRES_USER: quickbite
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quickbite123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - quickbite_pgdata:/var/lib/postgresql/data
+      - ./backend/sql/schema_postgres.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./backend/sql/seed_postgres.sql:/docker-entrypoint-initdb.d/02_seed.sql
+      - ./backend/sql/views_postgres.sql:/docker-entrypoint-initdb.d/03_views.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quickbite -d quickbite"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: quickbite-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: quickbite-backend
+    environment:
+      DATABASE_URL: postgresql://quickbite:${POSTGRES_PASSWORD:-quickbite123}@db:5432/quickbite
+      AUTO_CREATE_TABLES: "false"
+      SECRET_KEY: ${SECRET_KEY:-quickbite-docker-secret-change-before-production}
+      ACCESS_TOKEN_EXPIRE_MINUTES: "1440"
+      CORS_ALLOW_ORIGINS: http://127.0.0.1:5173,http://localhost:5173
+      AWS_REGION: ap-southeast-1
+      S3_BUCKET_NAME: quickbite-menu-images
+
+      EMAIL_ENABLED: "true"
+      EMAIL_BACKEND: smtp
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      EMAIL_FROM: no-reply@quickbite.local
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: quickbite-frontend
+    environment:
+      VITE_API_BASE: http://127.0.0.1:8000
+      VITE_BASENAME: /
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  quickbite_pgdata:
